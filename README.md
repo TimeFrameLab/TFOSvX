@@ -1,0 +1,260 @@
+# TFOSvX (TimeFrame Operation System vX)
+ระบบปฎิบัติการเชิงระบบและหลักการตัดสินใจ (Operation Systematic Workflow & MPTM Architecture)
+
+# 🔔 การเริ่มต้นใช้งาน
+1. ติดตั้ง Devin และสร้างโฟลเดอร์ใน root ของโปรเจกต์ และดาวน์โหลดไฟล์ "TFOSvX" ใส่ในโฟลเดอร์นั้น
+2. เปิด TFOSvX.code-workspace → README.md
+3. เริ่มต้นการทำงานด้วยการพิมพ์ "START"(ระบบ → REVIEW @TimeFrame-OS-guidelines-and-model-vX.md → รอคำสั่งถัดไป) ใน Agent Chat ของ Devin ที่อยู่ในโปรเจกต์โฟลเดอร์
+
+# 🐋 TimeFrame OS (vX)
+
+ระบบวิเคราะห์สัญญาณซื้อขายคริปโตเคอร์เรนซีด้วย **Momentum Phase Transition Model (MPTM)** — โมเดลสถาปัตยกรรมระบบที่ออกแบบมาเพื่อวิเคราะห์และค้นหา "พฤติกรรมก่อนการระเบิดตัวของราคา" (Pre-Run Behavior) ด้วยการคัดกรองตามโครงสร้างไทม์เฟรม W → D → 4H → 1H
+
+## 📋 ภาพรวม
+
+TimeFrame OS (vX) เป็นระบบอัตโนมัติสำหรับ:
+- ดาวน์โหลดข้อมูลตลาดจาก Reference Sheet (Google Sheets)
+- ประมวลผลสัญญาณตามหลัก MPTM
+- คัดกรองเหรียญตามเกณฑ์ทางเทคนิคที่เข้มงวด
+- สร้างรายงาน Excel แบบ 3 ชีท
+- ตรวจสอบสภาพคล่อง (Liquidity) จาก Bitkub API
+- ส่งคำสั่งซื้อขายอัตโนมัติผ่าน Bitkub API
+
+## ✨ คุณสมบัติหลัก
+
+### 🔍 ระบบคัดกรอง MPTM
+- **Direction Filter**: ตรวจสอบทิศทางภาพใหญ่ (W → D)
+- **Momentum Acceleration**: ตรวจวัดอัตราเร่งโมเมนตัม (MACD Histogram Delta)
+- **Volume Confirmation**: ยืนยันด้วยปริมาณการซื้อขาย
+- **Structure Shift**: ตรวจสอบการเปลี่ยนผ่านโครงสร้างราคา (Reversal → Breakout)
+- **Relative Strength**: เปรียบเทียบความแข็งแกร่งเทียบกับ BTC
+- **Liquidity Guard**: ตัวกรองสภาพคล่องก่อนส่งคำสั่งซื้อขาย
+
+### 📊 รายงาน Excel 3 ชีท
+1. **Latest Snapshot**: สรุปสัญญาณรอบล่าสุดพร้อมคำแนะนำ
+2. **Master Signal Log**: บันทึกประวัติสัญญาณรายรอบ (Append-Only)
+3. **REF.**: เก็บลิงก์ Reference Sheet ต้นทาง
+
+### 🎯 การจำแนกสถานะ
+- 🟢 **BUY CONFIRMED**: ผ่าน MPTM ครบ + 1H Trigger ยืนยัน
+- 🟡 **EARLY/WATCH**: ผ่าน MPTM แต่รอ 1H Trigger
+- 🟠 **PULLBACK ZONE**: W/4H/1H=UP แต่ RSI(1H) < 50 (กำลังพักฐาน)
+- 🔴 **OVEREXTENDED**: RSI(D) ≥ 70 (ห้ามไล่ราคา)
+- ⚪ **WAIT/RETEST**: โครงสร้างยังไม่พร้อม
+
+## 🚀 การติดตั้งและตั้งค่าเริ่มต้น
+
+### 1. ข้อกำหนดเบื้องต้น (Prerequisites)
+- **macOS** หรือ Linux
+- **Python 3** พร้อม library:
+  ```bash
+  pip3 install openpyxl requests
+  ```
+- **curl** สำหรับดาวน์โหลดข้อมูล
+- **openssl** สำหรับ signing API requests
+- **Bitkub API Key** และ **API Secret** (สำหรับฟีเจอร์การซื้อขาย)
+
+### 2. โคลนโครงการ
+```bash
+cd TFvX
+```
+
+### 3. ตั้งค่า Environment Variables
+สร้างไฟล์ `.env` ในโฟลเดอร์โครงการ:
+
+```bash
+# Reference Sheet URL (Google Sheets)
+REF_SHEET_URL=https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit?usp=sharing
+
+# Bitkub API Credentials (สำหรับฟีเจอร์การซื้อขาย)
+BITKUB_API_KEY=your_api_key_here
+BITKUB_API_SECRET=your_api_secret_here
+```
+
+**หมายเหตุ**: หากไม่ได้ตั้งค่า `REF_SHEET_URL` ระบบจะใช้ค่า default Sheet ID
+
+### 4. ตั้งค่า Script Permissions
+```bash
+chmod +x update.sh trade.sh
+```
+
+## 📖 วิธีการใช้งาน
+
+### เริ่มต้นการทำงาน (START Command)
+
+เมื่อเปิดไฟล์โปรเจกต์นี้ ให้พิมพ์คำสั่ง **"START"** เพื่อเริ่มต้นการทำงาน:
+
+```
+START
+```
+
+**สิ่งที่เกิดขึ้น**:
+1. ระบบจะทบทวนเนื้อหาใน `TimeFrame-OS-guidelines-and-model-vX.md`
+2. ตรวจสอบสถานะระบบและการตั้งค่า `.env`
+3. พร้อมรับคำสั่งถัดไป เช่น `UPDATE`, `MONEY`, `CANDIDATE`, หรือคำสั่งซื้อขาย
+
+### คำสั่งหลักที่ใช้งาน
+
+| คำสั่ง | การใช้งาน | ผลลัพธ์ |
+|:---|:---|:---|
+| `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
+| `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
+| `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
+| `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
+| `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
+| `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
+| `SELL/COIN/L=PCT%` | รัน `./trade.sh "SELL/..."` | ส่งคำสั่งขายเหรียญ |
+
+### อัปเดตข้อมูลและประมวลผลสัญญาณ
+คำสั่งนี้จะดาวน์โหลดข้อมูลล่าสุด ประมวลผล MPTM และสร้างรายงาน Excel:
+
+```bash
+./update.sh
+```
+
+**สิ่งที่เกิดขึ้น**:
+1. โหลดค่าจาก `.env`
+2. ดึง Sheet ID จาก `REF_SHEET_URL`
+3. ดาวน์โหลดข้อมูลจาก Google Sheets
+4. ประมวลผลตามเกณฑ์ MPTM
+5. จัดกลุ่มเหรียญตามสถานะ
+6. ตรวจสอบ Liquidity จาก Bitkub API
+7. สร้างไฟล์ Excel 3 ชีทที่ `downloads/All-Bitkub-Batch-Log-vX_output.xlsx`
+8. แสดงผลสรุปใน Terminal
+
+### ตรวจยอดเงิน
+ตรวจสอบยอดเงินบาทคงเหลือในพอร์ต:
+
+```bash
+./trade.sh "MONEY"
+```
+
+### ส่งคำสั่งซื้อ (BUY)
+**Market Order**:
+```bash
+./trade.sh "BUY/BTC/L=M/1000"
+```
+*ซื้อ BTC มูลค่า 1,000 THB ในราคาตลาด*
+
+**Limit Order**:
+```bash
+./trade.sh "BUY/BTC/L=2000000/1000"
+```
+*ซื้อ BTC ในราคา 2,000,000 THB มูลค่า 1,000 THB*
+
+### ส่งคำสั่งขาย (SELL)
+**Market Order**:
+```bash
+./trade.sh "SELL/BTC/L=M/100%"
+```
+*ขาย BTC ทั้งหมดในราคาตลาด*
+
+**Limit Order**:
+```bash
+./trade.sh "SELL/BTC/L=2000000/100%"
+```
+*ขาย BTC ทั้งหมดในราคา 2,000,000 THB*
+
+## 📁 โครงสร้างโครงการ
+
+```
+TFvX/
+├── .env                                    ← Environment variables
+├── .gitignore                              ← Git ignore rules
+├── update.sh                               ← Main update script
+├── trade.sh                                ← Trading command script
+├── README.md                               ← เอกสารนี้
+├── TimeFrame-OS-guidelines-and-model-vX.md ← เอกสารแนวทาง MPTM แบบละเอียด
+├── downloads/                              ← โฟลเดอร์สำหรับไฟล์ดาวน์โหลด
+│   └── All-Bitkub-Batch-Log-vX_output.xlsx ← รายงาน Excel output
+└── TFvX/                                   ← Sub-repository (ถ้ามี)
+```
+
+## 🧠 เกณฑ์ MPTM (สรุป)
+
+เหรียญจะถูกจัดเป็น **EARLY/WATCH** หากผ่านเกณฑ์ทั้ง 6 ข้อนี้:
+
+1. ✅ `TREND(W) = UP` — ทิศทางสัปดาห์เป็นขาขึ้น
+2. ✅ `RSI(W) > 50` — แรงส่งระดับสัปดาห์เหนือระดับสมดุล
+3. ✅ `MACD_HIST_DELTA(W) > 0` — อัตราเร่งโมเมนตัมเพิ่มขึ้น
+4. ✅ `RSI(D) < 70` — ไม่อยู่ในโซนความร้อนสูง
+5. ✅ `EMA9(W) > EMA21(W)` — เส้นค่าเฉลี่ยเคลื่อนที่เรียงตัว
+6. ✅ `SIGNAL_VOLUME ≥ 1 TF = BUY` — มี Volume ยืนยันในอย่างน้อย 1 ไทม์เฟรม
+
+เหรียญจะถูกจัดเป็น **BUY CONFIRMED** หาก:
+- ผ่านเกณฑ์ทั้ง 6 ข้อข้างต้น
+- และเกิด `ENTRY_TRIGGER(1H) = ENTRY/TRIGGER` ยืนยัน
+
+## 🔐 การจัดการความปลอดภัย
+
+- **ห้าม commit** ไฟล์ `.env` ไปยัง Git repository
+- ไฟล์ `.env` อยู่ใน `.gitignore` โดย default
+- ควรใช้ Environment Variables แยกสำหรับ Production/Staging
+- API Key และ Secret ควรถูกเก็บรักษาอย่างปลอดภัยและไม่แชร์ให้ผู้อื่น
+
+## 📝 เอกสารเพิ่มเติม
+
+สำหรับรายละเอียดเชิงลึกเกี่ยวกับ:
+- แนวทางการทำงานเชิงระบบ (System Workflow)
+- สถาปัตยกรรม MPTM แบบละเอียด
+- สเปกตรัมระบบจับสัญญาณ Early Entry
+- กรอบการตัดสินใจ Dual-Stage Entry
+- ตัวอย่างการใช้งานและ Template Prompt
+- รูปแบบคำตอบที่บังคับ (Required Answer Format)
+- ขั้นตอนการเรียกใช้ระบบต่อไป (Reusable Follow-Up Prompt Flow)
+
+ดูได้ที่: [TimeFrame-OS-guidelines-and-model-vX.md](TimeFrame-OS-guidelines-and-model-vX.md)
+
+### สรุป Workflow การทำงาน
+
+```
+1. START → REVIEW guideline → พร้อมรับคำสั่ง
+              ↓
+2. UPDATE → ดาวน์โหลดข้อมูล → ประมวลผล MPTM → สร้าง Excel 3 ชีท
+              ↓
+3. ตรวจสอบสถานะ → BUY CONFIRMED / EARLY/WATCH / PULLBACK / WAIT
+              ↓
+4. ดำเนินการ → MONEY / CANDIDATE / BUY / SELL
+              ↓
+5. REVIEW → ทบทวน guideline และเริ่มรอบใหม่
+```
+
+## 🐛 การแก้ไขปัญหา
+
+### ข้อผิดพลาด: `❌ กรุณาตั้งค่า BITKUB_API_KEY และ BITKUB_API_SECRET ใน .env`
+**วิธีแก้**: ตรวจสอบว่าไฟล์ `.env` มีค่า `BITKUB_API_KEY` และ `BITKUB_API_SECRET` ที่ถูกต้อง
+
+### ข้อผิดพลาด: Python module not found
+**วิธีแก้**: ติดตั้ง library ที่จำเป็น:
+```bash
+pip3 install openpyxl requests
+```
+
+### ข้อผิดพลาด: Permission denied สำหรับ script
+**วิธีแก้**: ตั้งค่า execute permission:
+```bash
+chmod +x update.sh trade.sh
+```
+
+### ข้อผิดพลาด: Sheet ID ไม่ถูกต้อง
+**วิธีแก้**: ตรวจสอบ `REF_SHEET_URL` ใน `.env` ว่าอยู่ในรูปแบบที่ถูกต้อง:
+```
+https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit?usp=sharing
+```
+
+## 📄 License
+
+โครงการนี้เป็นส่วนตัวสำหรับการใช้งานส่วนบุคคล
+
+## 🤝 การสนับสนุน
+
+หากพบปัญหาหรือมีข้อสงสัย โปรดตรวจสอบ:
+1. เอกสารแนวทาง MPTM แบบละเอียด
+2. การตั้งค่า Environment Variables
+3. Log output จาก script สำหรับข้อผิดพลาดเฉพาะ
+
+---
+
+**เวอร์ชัน**: vX  
+**อัปเดตล่าสุด**: 09/10/2026  
+**สร้างด้วย ❤️ สำหรับการวิเคราะห์คริปโตเคอร์เรนซีที่มีวินัย**

@@ -52,6 +52,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INPUT  = os.path.join(SCRIPT_DIR, "downloads", "All-Bitkub-Batch-Log-vX.xlsx")
 OUTPUT = os.path.join(SCRIPT_DIR, "downloads", "All-Bitkub-Batch-Log-vX_output.xlsx")
 
+# กำหนดเหรียญที่ต้องการแสดง LAST_CANDLE, UPDATED, Source
+TARGET_COIN = 'BTC'  # เปลี่ยนเป็นเหรียญที่ต้องการ (เช่น 'AAVE', 'ATOM', 'QNT')
+
 wb_src = openpyxl.load_workbook(INPUT)
 ws_src = wb_src['All-Bitkub-BATCH']
 headers = [cell.value for cell in ws_src[1]]
@@ -139,9 +142,12 @@ overextended  = [d for d in rows_data if d['STATUS'] == 'OVEREXTENDED']
 wait_retest   = [d for d in rows_data if d['STATUS'] == 'WAIT_RETEST']
 
 snap_rows = buy_confirmed + early_watch[:20]
-updated     = rows_data[0].get('UPDATED','') if rows_data else ''
-last_candle = rows_data[0].get('LAST_CANDLE','') if rows_data else ''
-first_aka   = rows_data[0].get('AKA','') if rows_data else ''
+# ค้นหา TARGET_COIN ใน rows_data ถ้าไม่พบใช้แถวแรกสุด
+target_coin = next((x for x in rows_data if x.get('AKA') == TARGET_COIN), rows_data[0])
+updated     = target_coin.get('UPDATED','') if target_coin else ''
+last_candle = target_coin.get('LAST_CANDLE','') if target_coin else ''
+first_aka   = target_coin.get('AKA','') if target_coin else ''
+source      = target_coin.get('Source','exchange') if target_coin else 'exchange'
 
 # --- Styles ---
 GREEN_FILL  = PatternFill("solid", fgColor="C6EFCE")
@@ -303,10 +309,10 @@ def check_liquidity(aka):
     except:
         return '⚫ N/A', 0, 0
 
-print(f"AKA         : {first_aka} (Row 2)")
+print(f"AKA         : {first_aka} 🚀")
 print(f"LAST_CANDLE : {last_candle}")
 print(f"UPDATED     : {updated}")
-print(f"Source      : exchange")
+print(f"Source      : {source}")
 print(f"")
 print(f"🟢 BUY CONFIRMED : {len(buy_confirmed)}")
 print(f"🟡 EARLY/WATCH   : {len(early_watch)}")

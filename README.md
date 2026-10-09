@@ -2,7 +2,7 @@
 ระบบปฎิบัติการเชิงระบบและหลักการตัดสินใจ (Operation Systematic Workflow & MPTM Architecture)
 
 # 🔔 การเริ่มต้นใช้งาน
-1. ติดตั้ง [Devin](https://devin.ai) และสร้างโฟลเดอร์ใน root ของโปรเจกต์ และดาวน์โหลดไฟล์ [TFOSvX](https://github.com/TimeFrameLab/TFOSvX) ใส่ในโฟลเดอร์นั้น
+1. ติดตั้ง [Devin](https://devin.ai/download) และสร้างโฟลเดอร์ใน root ของโปรเจกต์ และดาวน์โหลดไฟล์ [TFOSvX](https://github.com/TimeFrameLab/TFOSvX) ใส่ในโฟลเดอร์นั้น
 2. เปิด TFOSvX.code-workspace → README.md
 3. เริ่มต้นการทำงานด้วยการพิมพ์ "START"(ระบบ → REVIEW @TimeFrame-OS-guidelines-and-model-vX.md → รอคำสั่งถัดไป) ใน Agent Chat ของ Devin ที่อยู่ในโปรเจกต์โฟลเดอร์
 

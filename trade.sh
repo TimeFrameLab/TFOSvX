@@ -108,6 +108,55 @@ TIMESTAMP=$(curl -s "$BASE_URL/api/v3/servertime")
 # BUY
 # ============================================================
 if [[ "$SIDE" == "BUY" ]]; then
+  # ตรวจสอบสถานะเหรียญจาก Excel output
+  OUTPUT_FILE="$(dirname "$0")/downloads/All-Bitkub-Batch-Log-vX_output.xlsx"
+  if [[ -f "$OUTPUT_FILE" ]]; then
+    STATUS=$(python3 -c "
+import openpyxl
+try:
+    wb = openpyxl.load_workbook('$OUTPUT_FILE')
+    sheet = wb['Latest Snapshot']
+    for row in sheet.iter_rows(min_row=3, values_only=True):
+        aka = row[2]
+        if aka == '$COIN':
+            advice = row[12]
+            if advice and 'BUY CONFIRMED' in advice:
+                print('BUY_CONFIRMED')
+            elif advice and 'EARLY/WATCH' in advice:
+                print('EARLY_WATCH')
+            elif advice and 'PULLBACK ZONE' in advice:
+                print('PULLBACK_ZONE')
+            elif advice and 'OVEREXTENDED' in advice:
+                print('OVEREXTENDED')
+            elif advice and 'WAIT/RETEST' in advice:
+                print('WAIT_RETEST')
+            else:
+                print('UNKNOWN')
+            break
+    else:
+        print('NOT_FOUND')
+except:
+    print('ERROR')
+" 2>/dev/null)
+
+    if [[ "$STATUS" != "BUY_CONFIRMED" && "$STATUS" != "NOT_FOUND" && "$STATUS" != "ERROR" ]]; then
+      echo "⚠️ คำเตือน: $COIN อยู่ในสถานะ $STATUS (ไม่ใช่ BUY CONFIRMED)"
+      echo "การซื้อละเมิดกฎ MPTM"
+      echo ""
+      echo "ตามกฎ MPTM: ต้องมี 1H Trigger ยืนยันก่อนซื้อ"
+      echo "BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยัน"
+      echo ""
+      echo "คุณต้องการซื้อต่อไหม? (y/n)"
+      read -r CONFIRM
+      if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+        echo "❌ ยกเลิกคำสั่ง"
+        exit 1
+      fi
+      echo "✅ ยืนยันการซื้อที่ละเมิดกฎ MPTM"
+      echo ""
+    fi
+  fi
+
   AMT="$AMOUNT_PART"
   BODY="{\"sym\":\"${SYM_LOWER}\",\"amt\":${AMT},\"rat\":${RAT},\"typ\":\"${TYP}\"}"
   SIGN=$(sign "${TIMESTAMP}POST/api/v3/market/place-bid${BODY}")

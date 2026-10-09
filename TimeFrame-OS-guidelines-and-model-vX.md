@@ -8,7 +8,7 @@
 ก่อนเริ่มใช้งาน ต้องตั้งค่า `REF_SHEET_URL` ในไฟล์ `.env`:
 
 ```bash
-# แก้ไขไฟล์ /Users/timeframe/Projects/MPTM/.env
+# แก้ไขไฟล์ ../Projects/TFOSvX/.env
 REF_SHEET_URL=<Reference Sheet URL ของคุณ>
 ```
 
@@ -257,23 +257,23 @@ MPTM แบ่งสเตจการเข้าซื้อออกเป็
 **วิธีที่ 1: รัน update.sh จาก Terminal (แนะนำ)**
 
 ```bash
-cd /Users/timeframe/Projects/MPTM && ./update.sh
+cd ../Projects/TFOSvX && ./update.sh
 ```
 
 * script จะดาวน์โหลด → ประมวลผล MPTM → สร้าง Excel output ครบในคำสั่งเดียว
-* ไฟล์ script อยู่ที่: `/Users/timeframe/Projects/MPTM/update.sh`
+* ไฟล์ script อยู่ที่: `../Projects/TFOSvX/update.sh`
 
 **วิธีที่ 2: ดาวน์โหลดด้วย curl โดยตรง**
 เนื่องจาก Reference Sheet (REF Sheet) ต้นทางเป็น Public สามารถดาวน์โหลดโดยตรงผ่าน `curl` ได้เลยโดยไม่ต้องใช้ credentials:
 
 ```bash
 curl -L "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=xlsx" \
-  -o /Users/timeframe/Projects/MPTM/downloads/All-Bitkub-Batch-Log-vX.xlsx
+  -o ../Projects/TFOSvX/downloads/All-Bitkub-Batch-Log-vX.xlsx
 ```
 
 * ไฟล์ที่ดาวน์โหลดจะมีชีทเดียวชื่อ `All-Bitkub-BATCH` พร้อมข้อมูลครบทุกคอลัมน์
 * ค่าในแต่ละเซลล์จะถูก export เป็น `COMPUTED_VALUE` (ค่าที่คำนวณแล้ว) ไม่ใช่สูตร ให้ parse ด้วย regex: `,([^,]+)\)$`
-* ไฟล์ output บันทึกที่: `/Users/timeframe/Projects/MPTM/downloads/All-Bitkub-Batch-Log-vX_output.xlsx`
+* ไฟล์ output บันทึกที่: `../Projects/TFOSvX/downloads/All-Bitkub-Batch-Log-vX_output.xlsx`
 
 ### 2. ตรวจโครงสร้างข้อมูลและคอลัมน์สำคัญ
 * ค้นหาเฉพาะคอลัมน์ที่เกี่ยวข้อง เช่น `AKA`, `TIER`, `Source`, `PRICE`, `TREND(W)`, `RSI(W)`, `RSI(D)`, `MACD_HIST(W)`, `MACD_HIST_DELTA(W)`, `EMA9(W)`, `EMA21(W)`, `PRICE_STRUCTURE(W)`, `ENTRY_TRIGGER(1H)`, `ACTION(1H)`, `SIGNAL_VOLUME(W)`, `SIGNAL_VOLUME(D)`, `SIGNAL_VOLUME(4H)`, `SIGNAL_VOLUME(1H)`
@@ -396,7 +396,7 @@ START
 ```
 
 **หมายเหตุสำคัญ:**
-* คำสั่ง **"START"** จะอ่านไฟล์ guideline จากพาธ `.../MPTM/TimeFrame-OS-guidelines-and-model-vX.md` อัตโนมัติ
+* คำสั่ง **"START"** จะอ่านไฟล์ guideline จากพาธ `.../TFOSvX/TimeFrame-OS-guidelines-and-model-vX.md` อัตโนมัติ
 * **กรณีเครื่องใหม่**: ผู้ใช้ต้องสร้างโครงการ (โฟลเดอร์) ก่อน โดยตั้งชื่อโฟลเดอร์เป็น `MPTM` และวางไฟล์ `TimeFrame-OS-guidelines-and-model-vX.md` ไว้ในโฟลเดอร์นั้น
 * หลังจากพิมพ์ **"START"** ระบบจะโหลดหลักการ MPTM, วิธีดึงข้อมูล, คำสั่ง update.sh และ format การตอบครบทันที
 * จากนั้นพิมพ์ **"UPDATE"** ได้เลย — ระบบจะดึงข้อมูลล่าสุด, ประมวลผล MPTM และตรวจ **Liquidity ทุกเหรียญในทุกหมวด** (🟢 HIGH / 🟡 MEDIUM / 🔴 LOW) พร้อม Vol24h และ Spread% โดยอัตโนมัติ
@@ -418,7 +418,7 @@ MPTM/
 
 ### ตั้งค่า API (ครั้งเดียว)
 
-แก้ไขไฟล์ `/Users/timeframe/Projects/MPTM/.env`:
+แก้ไขไฟล์ `../Projects/TFOSvX/.env`:
 ```
 BITKUB_API_KEY=your_api_key_here
 BITKUB_API_SECRET=your_api_secret_here
@@ -445,53 +445,6 @@ BITKUB_API_SECRET=your_api_secret_here
 * **L=M** → `typ=market, rat=0` | **L=ราคา** → `typ=limit, rat=ราคา`
 * **Limit Sell** — ใช้สำหรับกำหนดเป้าหมายในราคาที่ต้องการขาย (Take Profit)
 * ใช้ได้กับทุกเหรียญที่ Bitkub รองรับ เพียงเปลี่ยน `BTC` เป็นชื่อเหรียญที่ต้องการ
-
-### Changelog การแก้ไข
-
-**09/10/2026 - เพิ่มคู่มือการทำงานและตั้งค่า .env**
-- **การเปลี่ยนแปลง**: 
-  - เพิ่ม Part 1.0: การตั้งค่าเริ่มต้น
-  - เพิ่ม REF_SHEET_URL ใน .env
-  - อัปเดต update.sh ให้โหลด .env และดึง Sheet ID อัตโนมัติ
-  - เพิ่มคู่มือการทำงานแบบภาพรวม (Workflow Overview)
-  - เพิ่มตารางคำสั่งหลักที่ใช้งาน
-- **ผล**: ระบบยืดหยุ่นขึ้น สามารถเปลี่ยน Reference Sheet (REF Sheet) URL ได้โดยไม่ต้องแก้ code
-- **ไฟล์ที่แก้**: 
-  - `/Users/timeframe/Projects/MPTM/.env` (เพิ่ม REF_SHEET_URL)
-  - `/Users/timeframe/Projects/MPTM/update.sh` (เพิ่มการโหลด .env)
-  - `/Users/timeframe/Projects/MPTM/mptm-system-guidelines-and-model-vX.md` (เพิ่มคู่มือ)
-
-**09/10/2026 - เพิ่มคำอธิบาย Limit Sell และ Stop Loss**
-- **การเปลี่ยนแปลง**:
-  - เพิ่มคำอธิบายว่า Limit Sell ใช้สำหรับกำหนดเป้าหมายในราคาที่ต้องการขาย (Take Profit)
-  - เพิ่มส่วน Stop Loss และ Take Profit อธิบายว่า Bitkub REST v3 ไม่รองรับ Stop-Loss Order โดยตรง
-  - แสดง endpoints ที่มีใน API v3
-  - แสดงวิธีทำ Stop Loss แบบอื่น (Limit Sell, Trading Bot, Manual)
-  - เพิ่มหมายเหตุว่าไม่แนะนำให้เพิ่ม STOP command ใน trade.sh
-- **ผล**: ผู้ใช้เข้าใจข้อจำกัดของ Bitkub API และวิธีทำ Stop Loss ทางเลือก
-- **ไฟล์ที่แก้**: 
-  - `/Users/timeframe/Projects/MPTM/TimeFrame-OS-guidelines-and-model-vX.md` (เพิ่มคำอธิบาย)
-
-**09/10/2026 - เปลี่ยนชื่อโครงการจาก MPTM เป็น TFvX**
-- **การเปลี่ยนแปลง**:
-  - เปลี่ยนชื่อโฟลเดอร์โครงการหลักจาก `MPTM` เป็น `TFvX`
-  - เปลี่ยนชื่อโฟลเดอร์ sub-repository จาก `MPTMvX` เป็น `TFvX`
-  - เปลี่ยนชื่อไฟล์ workspace จาก `MPTM.code-workspace` เป็น `TFvX.code-workspace`
-  - เปลี่ยนชื่อไฟล์ guideline ใน TFvX จาก `mptm-system-guidelines-and-model-vX.md` เป็น `TimeFrame-OS-guidelines-and-model-vX.md`
-  - อัปเดต README.md ให้ใช้ชื่อโฟลเดอร์ใหม่
-- **ผล**: ชื่อโครงการสอดคล้องกับ TimeFrame OS มากขึ้น
-- **ไฟล์ที่แก้**:
-  - `/Users/timeframe/Projects/MPTM` → `/Users/timeframe/Projects/TFvX` (เปลี่ยนชื่อโฟลเดอร์หลัก)
-  - `/Users/timeframe/Projects/TFvX/MPTMvX` → `/Users/timeframe/Projects/TFvX/TFvX` (เปลี่ยนชื่อ sub-repository)
-  - `/Users/timeframe/Projects/TFvX/MPTM.code-workspace` → `/Users/timeframe/Projects/TFvX/TFvX.code-workspace` (เปลี่ยนชื่อ workspace)
-  - `/Users/timeframe/Projects/TFvX/TFvX/mptm-system-guidelines-and-model-vX.md` → `/Users/timeframe/Projects/TFvX/TFvX/TimeFrame-OS-guidelines-and-model-vX.md` (เปลี่ยนชื่อไฟล์)
-  - `/Users/timeframe/Projects/TFvX/README.md` (อัปเดตโครงสร้างโครงการ)
-
-**08/10/2026 - แก้ไข function sign()**
-- **ปัญหา**: openssl dgst output ไม่มี prefix "SHA256" ในบางระบบ ทำให้ `awk '{print $2}'` ไม่เจอค่า signature
-- **การแก้ไข**: เปลี่ยนจาก `awk '{print $2}'` เป็น `awk '{print $NF}'` เพื่อใช้ last field แทน
-- **ผล**: การ sign API ทำงานได้ปกติ สามารถเรียกใช้คำสั่ง MONEY, BUY, SELL ได้
-- **ไฟล์ที่แก้**: `/Users/timeframe/Projects/MPTM/trade.sh` บรรทัด 40
 
 ### แหล่งข้อมูลอ้างอิง Bitkub API
 

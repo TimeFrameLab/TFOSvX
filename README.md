@@ -4,7 +4,7 @@
 # 🔔 การเริ่มต้นใช้งาน
 1. ติดตั้ง [Devin](https://devin.ai/download) และสร้างโฟลเดอร์ใน root ของโปรเจกต์ และดาวน์โหลดไฟล์ [TFOSvX](https://github.com/TimeFrameLab/TFOSvX/archive/refs/heads/main.zip) แล้วแตกไฟล์ออกเป็นโฟลเดอร์ ใส่ในโฟลเดอร์นั้น
 2. เปิด TFOSvX.code-workspace → README.md
-3. เริ่มต้นการทำงานด้วยการพิมพ์ "START"(ระบบ → REVIEW @TimeFrame-OS-guidelines-and-model-vX.md → รอคำสั่งถัดไป) ใน Agent Chat ของ Devin ที่อยู่ในโปรเจกต์โฟลเดอร์
+3. เริ่มต้นการทำงานด้วยการพิมพ์ "START @README.md"(ระบบ → REVIEW @TimeFrame-OS-guidelines-and-model-vX.md → รอคำสั่งถัดไป) ใน Agent Chat ของ Devin ที่อยู่ในโปรเจกต์โฟลเดอร์
 
 # 🐋 TimeFrame OS (vX)
 

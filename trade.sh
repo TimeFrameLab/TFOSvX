@@ -93,7 +93,7 @@ fi
 IFS='/' read -r SIDE COIN RATE_PART AMOUNT_PART <<< "$CMD"
 SIDE=$(echo "$SIDE" | tr '[:lower:]' '[:upper:]')
 COIN=$(echo "$COIN" | tr '[:lower:]' '[:upper:]')
-SYM_LOWER="${COIN,,}_thb"
+SYM_LOWER=$(echo "$COIN" | tr '[:upper:]' '[:lower:]')_thb
 
 RATE_VAL=$(echo "$RATE_PART" | sed 's/[Ll]=//')
 if [[ "$(echo "$RATE_VAL" | tr '[:lower:]' '[:upper:]')" == "M" ]]; then

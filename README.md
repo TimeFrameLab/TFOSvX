@@ -192,17 +192,23 @@ START
 ## 📁 โครงสร้างโครงการ
 
 ```
-TFvX/
-├── .env                                    ← Environment variables
-├── .gitignore                              ← Git ignore rules
-├── update.sh                               ← Main update script
-├── trade.sh                                ← Trading command script
-├── portfolio.sh                            ← Portfolio viewer script (ราคาซื้อเฉลี่ย + P/L + Remark)
-├── README.md                               ← เอกสารนี้
-├── TimeFrame-OS-guidelines-and-model-vX.md ← เอกสารแนวทาง MPTM แบบละเอียด
-├── downloads/                              ← โฟลเดอร์สำหรับไฟล์ดาวน์โหลด
-│   └── All-Bitkub-Batch-Log-vX_output.xlsx ← รายงาน Excel output
-└── TFvX/                                   ← Sub-repository (ถ้ามี)
+TFOSvX/
+├── .env.example                              ← แม่แบบตัวแปรสภาพแวดล้อม
+├── .env                                      ← ค่าของผู้ใช้ในเครื่อง (ไม่ติดตามโดย Git)
+├── .gitignore                                ← กฎละเว้นไฟล์และโฟลเดอร์
+├── update.sh                                 ← ดาวน์โหลดข้อมูลและประมวลผลรายงาน
+├── trade.sh                                  ← ตรวจยอดเงินและส่งคำสั่งซื้อขาย
+├── portfolio.sh                              ← แสดง Portfolio และ P/L
+├── README.md                                 ← คู่มือหลักของโครงการ
+├── GOOGLE-SHEETS-SETUP.md                   ← คู่มือตั้งค่า Google Sheets
+├── TimeFrame-OS-guidelines-and-model-vX.md   ← แนวทาง MPTM แบบละเอียด
+├── TFOSvX.code-workspace                    ← การตั้งค่า VS Code Workspace
+├── LICENSE                                   ← สัญญาอนุญาต
+├── examples/
+│   └── All-Bitkub-BATCH-starter.gs           ← Apps Script ต้นแบบ
+└── downloads/                                ← ไฟล์ที่สร้างระหว่างใช้งาน (ไม่ติดตามโดย Git)
+    ├── All-Bitkub-Batch-Log-vX.xlsx          ← ข้อมูลที่ดาวน์โหลดจาก Reference Sheet
+    └── All-Bitkub-Batch-Log-vX_output.xlsx   ← รายงาน Excel ที่ประมวลผลแล้ว
 ```
 
 ## 🧠 เกณฑ์ MPTM (สรุป)

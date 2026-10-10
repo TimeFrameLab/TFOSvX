@@ -42,6 +42,10 @@ TimeFrame OS (vX) เป็นระบบอัตโนมัติสำห�
 - 🔴 **OVEREXTENDED**: RSI(D) ≥ 70 (ห้ามไล่ราคา)
 - ⚪ **WAIT/RETEST**: โครงสร้างยังไม่พร้อม
 
+เมื่อแสดงรายงานผลในแชท ให้แสดงเหรียญในสถานะ `BUY CONFIRMED`, `EARLY/WATCH`, `PULLBACK ZONE` และ `OVEREXTENDED` เป็นตาราง โดยชื่อเหรียญเป็นลิงก์ TradingView ส่วน `WAIT/RETEST` ให้แสดงเฉพาะหัวข้อและจำนวนเหรียญ เช่น `⚪ WAIT/RETEST — 315 เหรียญ` ไม่ต้องแสดงรายชื่อหรือตาราง
+
+**หมายเหตุ:** ผลการจัดกลุ่มนี้อ้างอิงจากข้อมูล MPTM ที่อัปเดตล่าสุด ไม่ถือเป็นคำสั่งซื้อขายอัตโนมัติ โดยให้รอ 1H Trigger ตามเงื่อนไขในคู่มือก่อนพิจารณาเข้าซื้อ ทั้งนี้ สามารถติดตามการแจ้งเตือน 1H Trigger ได้ทาง Telegram: [TimeFrame CRYPTO Notify](https://t.me/TimeFrameCRYPTOnotify)
+
 ## 🚀 การติดตั้งและตั้งค่าเริ่มต้น
 
 ### 1. ข้อกำหนดเบื้องต้น (Prerequisites)
@@ -128,6 +132,7 @@ START
    UPDATED     : <timestamp ที่ข้อมูลอัปเดตล่าสุด>
    Source      : <แหล่งข้อมูลที่ใช้ เช่น exchange, broker, export>
    ```
+   ชื่อเหรียญในทุกรายการสถานะใน Terminal และคอลัมน์ชื่อเหรียญใน `Latest Snapshot` / `Master Signal Log` คลิกเพื่อเปิดกราฟ TradingView ได้ (Terminal ต้องรองรับ OSC 8 hyperlinks) เมื่อแสดงรายงานบนแชท ให้ใช้ชื่อเหรียญเป็น Markdown link ไปยังกราฟ TradingView ทุกหมวดและทุกตาราง
 
 **🔧 การกำหนดเหรียญที่แสดงในหัวข้อ:**
 - แก้บรรทัด `TARGET_COIN = 'BTC'` ใน `update.sh` (บรรทัดที่ 56)

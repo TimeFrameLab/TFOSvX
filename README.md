@@ -77,6 +77,8 @@ BITKUB_API_SECRET=your_api_secret_here
 
 **หมายเหตุ**: หากไม่ได้ตั้งค่า `REF_SHEET_URL` ระบบจะใช้ค่า default Sheet ID
 
+หากต้องการสร้าง Google Sheet และ Apps Script เพื่ออัปเดตข้อมูลเหรียญสำหรับใช้งานเอง ดู [คู่มือการตั้งค่า Google Sheets](./GOOGLE-SHEETS-SETUP.md) และ [ดาวน์โหลด Apps Script ต้นแบบ](./examples/All-Bitkub-BATCH-starter.gs)
+
 ### 4. ตั้งค่า Script Permissions
 ```bash
 chmod +x update.sh trade.sh portfolio.sh

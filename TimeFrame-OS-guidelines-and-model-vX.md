@@ -443,16 +443,17 @@ BITKUB_API_SECRET=your_api_secret_here
 * API ใช้ Bitkub REST v3 (`place-bid` / `place-ask`) + v4 (`wallet/balances`)
 * Signature: HMAC SHA-256 format `{timestamp}{METHOD}{path}{body}`
 
-### 4 คำสั่งที่รองรับ
+### คำสั่ง `trade.sh` ที่รองรับ
 
 | คำสั่ง | ความหมาย |
 | :--- | :--- |
 | `./trade.sh "BUY/BTC/L=M/1000"` | ซื้อ BTC ราคาตลาด ใช้เงิน 1,000 บาท |
 | `./trade.sh "BUY/BTC/L=2000000/1000"` | ซื้อ BTC ราคา Limit 2,000,000 ใช้เงิน 1,000 บาท |
-| `./trade.sh "SELL/BTC/L=M/100%"` | ขาย BTC ราคาตลาด 100% ของที่มีในพอร์ต |
-| `./trade.sh "SELL/BTC/L=2000000/100%"` | ขาย BTC ราคา Limit 2,000,000 ขาย 100% ของที่มี |
+| `./trade.sh "SELL/BTC/L=M/100%"` | ขาย BTC ราคาตลาด 100% ของยอดที่พร้อมใช้งานใน wallet |
+| `./trade.sh "SELL/BTC/L=2000000/100%"` | ขาย BTC ราคา Limit 2,000,000 จำนวน 100% ของยอดที่พร้อมใช้งาน |
 | `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ (Available / Reserved / Total) |
-| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L + Remark |
+
+Portfolio ใช้สคริปต์แยกต่างหาก: `./portfolio.sh`
 
 **Remark ในคอลัมน์ Portfolio:**
 - **Broker Coin\*** — Broker coin ไม่มี Order History ใน Bitkub API (error 61)
@@ -462,25 +463,23 @@ BITKUB_API_SECRET=your_api_secret_here
 ### Logic สำคัญ
 
 * **BUY** — `amt` = จำนวนบาทที่ต้องการใช้ซื้อ → ส่ง `POST /api/v3/market/place-bid`
-* **SELL** — ดึง balance จาก `GET /api/v4/wallet/balances` → คำนวณ qty ตาม % → ส่ง `POST /api/v3/market/place-ask`
+* **SELL** — ดึง available balance จาก `GET /api/v4/wallet/balances` → คำนวณ qty ตาม % ของยอดพร้อมใช้ → ส่ง `POST /api/v3/market/place-ask`
 * **L=M** → `typ=market, rat=0` | **L=ราคา** → `typ=limit, rat=ราคา`
 * **Limit Sell** — ใช้สำหรับกำหนดเป้าหมายในราคาที่ต้องการขาย (Take Profit)
 * ใช้ได้กับทุกเหรียญที่ Bitkub รองรับ เพียงเปลี่ยน `BTC` เป็นชื่อเหรียญที่ต้องการ
 
 ### ⚠️ การแจ้งเตือนและยืนยันก่อนส่งคำสั่งซื้อ (BUY Warning & Confirmation)
 
-ระบบ trade.sh ตรวจสอบ 2 ระดับก่อนส่งคำสั่งซื้อทุกครั้ง:
+ระบบ `trade.sh` ทำการตรวจสอบต่อไปนี้ในคำสั่ง BUY:
 
 **ขั้นตอนการทำงาน:**
-1. ดึง source ของเหรียญจาก `GET /api/v3/market/symbols` (หมายเหตุ: v4 ไม่มี endpoint นี้)
-2. แสดง `ℹ️ Broker Coin` หรือ `ℹ️ Exchange Coin` ให้ผู้ใช้ทราบ
-3. ถ้าเป็น **Broker Coin** → แจ้งเตือนข้อจำกัด (ไม่มี Order History) + ขอยืนยัน (y/n)
-4. ตรวจสอบสถานะ MPTM จาก Excel output (`downloads/All-Bitkub-Batch-Log-vX_output.xlsx`)
-5. ถ้าเหรียญอยู่ในสถานะ **BUY CONFIRMED** → ส่งคำสั่งซื้อทันที (ไม่มีการแจ้งเตือน MPTM)
-6. ถ้าเหรียญอยู่ในสถานะอื่น (EARLY/WATCH, PULLBACK ZONE, OVEREXTENDED, WAIT/RETEST) → แจ้งเตือน + ขอยืนยัน
-7. ถ้า **ไม่พบเหรียญใน Excel** (NOT_FOUND) → แจ้งเตือน + ขอยืนยัน
-8. ถ้า **อ่าน Excel ไม่ได้** (ERROR) → แจ้งเตือนให้รัน UPDATE ก่อน + ขอยืนยัน
-9. ถ้าผู้ใช้ไม่ยืนยัน → ยกเลิกคำสั่ง
+1. เรียก `GET /api/v3/market/symbols` และแสดง source ของเหรียญ; ถ้าเรียก API หรืออ่านข้อมูลไม่สำเร็จ สคริปต์ใช้ `exchange` เป็นค่าเริ่มต้น
+2. ถ้าเป็น **Broker Coin** → แจ้งข้อจำกัดและขอยืนยัน (y/n)
+3. ถ้ามีไฟล์ Excel output (`downloads/All-Bitkub-Batch-Log-vX_output.xlsx`) จะตรวจสถานะในชีท `Latest Snapshot`
+4. ถ้าสถานะเป็น **BUY CONFIRMED** → แจ้งว่าเหรียญผ่านเกณฑ์ MPTM และขอยืนยันก่อนส่งคำสั่งซื้อ
+5. ถ้าเป็นสถานะอื่น เช่น `EARLY/WATCH`, `PULLBACK ZONE`, `OVEREXTENDED`, `WAIT/RETEST` หรือ `UNKNOWN` → แจ้งเตือนว่าไม่ใช่ `BUY_CONFIRMED` และขอยืนยัน
+6. ถ้าไม่มีไฟล์ Excel, ไม่พบเหรียญ (`NOT_FOUND`) หรืออ่านไฟล์/ชีทไม่ได้ (`ERROR`) → แจ้งว่าไม่สามารถตรวจสอบสถานะ MPTM ได้ และขอยืนยันก่อนซื้อ
+7. เมื่อต้องยืนยัน หากผู้ใช้ตอบอย่างอื่นนอกจาก `y` หรือ `Y` คำสั่งจะถูกยกเลิก; Broker Coin ที่มีสถานะ MPTM อื่นซึ่งต้องยืนยันอาจถามสองครั้ง
 
 **ตัวอย่างการแจ้งเตือน (Broker Coin):**
 ```
@@ -503,20 +502,13 @@ BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยั
 คุณต้องการซื้อต่อไหม? (y/n)
 ```
 
-**ตัวอย่างการแจ้งเตือน (NOT_FOUND):**
-```
-⚠️ คำเตือน: ไม่พบ COIN ใน Excel output (ยังไม่ได้รัน UPDATE หรือเหรียญไม่อยู่ใน Sheet)
-ไม่สามารถตรวจสอบสถานะ MPTM ได้
-
-คุณต้องการซื้อต่อไหม? (y/n)
-```
+**กรณีไม่มีไฟล์ Excel / NOT_FOUND / ERROR:** สคริปต์แจ้งว่าไม่สามารถตรวจสอบสถานะ MPTM ได้และถามยืนยันก่อนดำเนินการ BUY ต่อ
 
 **ประโยชน์:**
 - แจ้งให้ทราบว่าเหรียญเป็น Broker หรือ Exchange ก่อนซื้อทุกครั้ง
 - ป้องกันการซื้อ Broker Coin โดยไม่รู้ข้อจำกัด
 - ป้องกันการซื้อโดยไม่รู้ตัวว่าละเมิดกฎ MPTM
 - ป้องกันการซื้อเหรียญที่อยู่ในสถานะ OVEREXTENDED (ห้ามไล่ราคา)
-- ป้องกันการซื้อเมื่อไม่มีข้อมูล MPTM (NOT_FOUND / ERROR)
 ### แหล่งข้อมูลอ้างอิง Bitkub API
 
 สำหรับการแก้ไขปัญหาและอ้างอิง API ของ Bitkub:
@@ -563,4 +555,3 @@ BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยั
    - เมื่อราคาแตะ Stop Loss → ส่งคำสั่ง SELL ผ่าน trade.sh
 
 **หมายเหตุ:** ไม่แนะนำให้เพิ่ม STOP command ใน trade.sh เพราะ Bitkub API ไม่รองรับโดยตรง และต้องใช้ logic ซับซ้อนเพื่อจำลอง stop loss ซึ่งเสี่ยงต่อการไม่ทำงาน
-

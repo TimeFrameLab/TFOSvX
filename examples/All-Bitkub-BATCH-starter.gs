@@ -174,3 +174,54 @@ function writeAllBitkubAnalysisUpdates(updates) {
     lock.releaseLock();
   }
 }
+
+/**
+ * Sends a Telegram message using credentials stored in Apps Script properties.
+ * Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Project Settings first.
+ *
+ * @param {string} text Plain-text message to send.
+ */
+function sendTelegramMessage(text) {
+  if (typeof text !== "string" || !text.trim()) {
+    throw new Error("Telegram message must not be empty.");
+  }
+
+  const properties = PropertiesService.getScriptProperties();
+  const token = properties.getProperty("TELEGRAM_BOT_TOKEN");
+  const chatId = properties.getProperty("TELEGRAM_CHAT_ID");
+  if (!token || !chatId) {
+    throw new Error(
+      "Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in Apps Script Project Settings > Script Properties."
+    );
+  }
+
+  const response = UrlFetchApp.fetch(
+    "https://api.telegram.org/bot" + token + "/sendMessage",
+    {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify({ chat_id: chatId, text: text }),
+      muteHttpExceptions: true
+    }
+  );
+  const statusCode = response.getResponseCode();
+  let result;
+  try {
+    result = JSON.parse(response.getContentText());
+  } catch (error) {
+    throw new Error("Telegram returned an invalid response (HTTP " + statusCode + ").");
+  }
+
+  if (!result || typeof result !== "object") {
+    throw new Error("Telegram returned an invalid response (HTTP " + statusCode + ").");
+  }
+  if (statusCode !== 200 || !result.ok) {
+    const detail = result.description || "Telegram request failed.";
+    throw new Error("Telegram API error (HTTP " + statusCode + "): " + detail);
+  }
+}
+
+function testTelegramMessage() {
+  sendTelegramMessage("Test message from All-Bitkub-BATCH Apps Script.");
+  Logger.log("Telegram test message sent.");
+}

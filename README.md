@@ -81,7 +81,7 @@ BITKUB_API_SECRET=your_api_secret_here
 
 **หมายเหตุ**: หากไม่ได้ตั้งค่า `REF_SHEET_URL` ระบบจะแสดงข้อความให้ตั้งค่า `REF_SHEET_URL` จากนั้นหยุดทำงานด้วยรหัสข้อผิดพลาด โดยไม่ดาวน์โหลดชีตหรือประมวลผลรายงาน
 
-หากต้องการสร้าง Google Sheet และ Apps Script เพื่ออัปเดตข้อมูลเหรียญสำหรับใช้งานเอง ดู [คู่มือการตั้งค่า Google Sheets](./GOOGLE-SHEETS-SETUP.md) และ [ดาวน์โหลด Apps Script ต้นแบบ](./examples/All-Bitkub-BATCH-starter.gs)
+หากต้องการสร้าง Google Sheet และ Apps Script เพื่ออัปเดตข้อมูลเหรียญสำหรับใช้งานเอง ดู [คู่มือการตั้งค่า Google Sheets](./GOOGLE-SHEETS-SETUP.md), [Apps Script ต้นแบบสำหรับเริ่มต้น](./examples/All-Bitkub-BATCH-starter.gs) หรือ [สคริปต์ MTFS ฉบับเต็มพร้อม Trigger รายชั่วโมง](./examples/All-Bitkub-MTFS.gs)
 
 ### 4. ตั้งค่า Script Permissions
 ```bash
@@ -205,7 +205,8 @@ TFOSvX/
 ├── TFOSvX.code-workspace                    ← การตั้งค่า VS Code Workspace
 ├── LICENSE                                   ← สัญญาอนุญาต
 ├── examples/
-│   └── All-Bitkub-BATCH-starter.gs           ← Apps Script ต้นแบบ
+│   ├── All-Bitkub-BATCH-starter.gs           ← ตัวช่วยสร้างหัวตารางและเขียนข้อมูล
+│   └── All-Bitkub-MTFS.gs                    ← สคริปต์ MTFS เต็ม: ดึงข้อมูลและอัปเดตทุก 1 ชั่วโมง
 └── downloads/                                ← ไฟล์ที่สร้างระหว่างใช้งาน (ไม่ติดตามโดย Git)
     ├── All-Bitkub-Batch-Log-vX.xlsx          ← ข้อมูลที่ดาวน์โหลดจาก Reference Sheet
     └── All-Bitkub-Batch-Log-vX_output.xlsx   ← รายงาน Excel ที่ประมวลผลแล้ว

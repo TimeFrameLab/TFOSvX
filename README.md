@@ -75,7 +75,7 @@ BITKUB_API_SECRET=your_api_secret_here
 
 ### 4. ตั้งค่า Script Permissions
 ```bash
-chmod +x update.sh trade.sh
+chmod +x update.sh trade.sh portfolio.sh
 ```
 
 ## 📖 วิธีการใช้งาน
@@ -91,7 +91,7 @@ START
 **สิ่งที่เกิดขึ้น**:
 1. ระบบจะทบทวนเนื้อหาใน `TimeFrame-OS-guidelines-and-model-vX.md`
 2. ตรวจสอบสถานะระบบและการตั้งค่า `.env`
-3. พร้อมรับคำสั่งถัดไป เช่น `UPDATE`, `MONEY`, `CANDIDATE`, หรือคำสั่งซื้อขาย
+3. พร้อมรับคำสั่งถัดไป เช่น `UPDATE`, `MONEY`, `PORTFOLIO`, `CANDIDATE`, หรือคำสั่งซื้อขาย
 
 ### คำสั่งหลักที่ใช้งาน
 
@@ -100,6 +100,7 @@ START
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -175,6 +176,7 @@ TFvX/
 ├── .gitignore                              ← Git ignore rules
 ├── update.sh                               ← Main update script
 ├── trade.sh                                ← Trading command script
+├── portfolio.sh                            ← Portfolio viewer script
 ├── README.md                               ← เอกสารนี้
 ├── TimeFrame-OS-guidelines-and-model-vX.md ← เอกสารแนวทาง MPTM แบบละเอียด
 ├── downloads/                              ← โฟลเดอร์สำหรับไฟล์ดาวน์โหลด
@@ -226,7 +228,7 @@ TFvX/
               ↓
 3. ตรวจสอบสถานะ → BUY CONFIRMED / EARLY/WATCH / PULLBACK / WAIT
               ↓
-4. ดำเนินการ → MONEY / CANDIDATE / BUY / SELL
+4. ดำเนินการ → MONEY / PORTFOLIO / CANDIDATE / BUY / SELL
               ↓
 5. REVIEW → ทบทวน guideline และเริ่มรอบใหม่
 ```

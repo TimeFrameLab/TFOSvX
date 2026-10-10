@@ -24,6 +24,7 @@ MPTM/
 ├── .env                    ← เก็บ REF_SHEET_URL, BITKUB_API_KEY, BITKUB_API_SECRET
 ├── update.sh               ← โหลด .env → ดึง Sheet ID → ดาวน์โหลดข้อมูล
 ├── trade.sh                ← โหลด .env → ใช้ API Key ส่งคำสั่งซื้อขาย
+├── portfolio.sh            ← script แสดง Portfolio + P/L
 └── TimeFrame-OS-guidelines-and-model-vX.md  ← เอกสารแนวทางนี้
 ```
 
@@ -61,6 +62,7 @@ MPTM/
 ┌─────────────────────────────────────────────────────────┐
 │ 5. คำสั่งเพิ่มเติม                                    │
 │    MONEY → ตรวจยอดเงิน                               │
+│    PORTFOLIO → แสดง Portfolio + P/L                    │
 │    CANDIDATE → แสดง PRE-ENTRY-Like Pattern CANDIDATE   │
 │    REVIEW → อ่าน guideline อีกครั้ง                  │
 │    BUY/SELL → ส่งคำสั่งซื้อขาย                       │
@@ -74,6 +76,7 @@ MPTM/
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -85,7 +88,7 @@ MPTM/
 
 1. **REVIEW Guideline**: อ่านและทบทวนเนื้อหาใน `TimeFrame-OS-guidelines-and-model-vX.md`
 2. **ตรวจสอบสถานะระบบ**: ยืนยันว่าไฟล์ `.env` ได้รับการตั้งค่าเรียบร้อย
-3. **พร้อมรับคำสั่ง**: รอรับคำสั่งถัดไปจากผู้ใช้ เช่น `UPDATE`, `MONEY`, `CANDIDATE`, หรือคำสั่งซื้อขาย
+3. **พร้อมรับคำสั่ง**: รอรับคำสั่งถัดไปจากผู้ใช้ เช่น `UPDATE`, `MONEY`, `PORTFOLIO`, `CANDIDATE`, หรือคำสั่งซื้อขาย
 
 **ตัวอย่างการใช้งาน**:
 ```
@@ -443,6 +446,7 @@ BITKUB_API_SECRET=your_api_secret_here
 | `./trade.sh "SELL/BTC/L=M/100%"` | ขาย BTC ราคาตลาด 100% ของที่มีในพอร์ต |
 | `./trade.sh "SELL/BTC/L=2000000/100%"` | ขาย BTC ราคา Limit 2,000,000 ขาย 100% ของที่มี |
 | `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ (Available / Reserved / Total) |
+| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
 
 ### Logic สำคัญ
 

@@ -94,7 +94,7 @@ MPTM/
 ```
 ผู้ใช้: START
 ระบบ: กำลังทบทวน TimeFrame-OS-guidelines-and-model-vX.md...
-ระบบ: ✅ พร้อมรับคำสั่ง (UPDATE / MONEY / CANDIDATE / BUY / SELL)
+ระบบ: ✅ พร้อมรับคำสั่ง (UPDATE / MONEY / PORTFOLIO / CANDIDATE / BUY / SELL)
 ```
 
 ### 1. ปรัชญาและหลักการวิเคราะห์คัดกรอง (Core Decision Framework)
@@ -357,22 +357,28 @@ curl -L "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=xlsx
 
 ทุกครั้งที่สอบถามหรือวิเคราะห์เกี่ยวกับเหรียญ ให้ตอบในรูปแบบที่บังคับดังนี้เสมอ:
 
-- LAST_CANDLE: <timestamp ของ candle ล่าสุด>
-- UPDATED: <timestamp ที่ข้อมูลอัปเดตล่าสุด>
-- Source: <แหล่งข้อมูลที่ใช้ เช่น exchange, Reference Sheet (REF Sheet), export>
+```
+AKA         : <ชื่อเหรียญ> 🚀
+LAST_CANDLE : <timestamp ของ candle ล่าสุด>
+UPDATED     : <timestamp ที่ข้อมูลอัปเดตล่าสุด>
+Source      : <แหล่งข้อมูลที่ใช้ เช่น exchange, broker, export>
+```
 
 ### กฎการตอบ:
-* ต้องระบุข้อมูล 3 อย่างนี้เป็นบรรทัดแรกสุดของสรุปทุกครั้ง
+* ต้องระบุข้อมูล 4 อย่างนี้เป็นบรรทัดแรกสุดของสรุปทุกครั้ง
 * ต้องยึดตามข้อมูลจริงจาก Sheet / Workbook ที่เพิ่งดาวน์โหลดมาใหม่ล่าสุด
 * ไม่ใช้ข้อมูลเก่าหรือแคชจากรอบก่อน
 * ถ้าไม่สามารถระบุค่าจริงได้ ให้ระบุว่า “ข้อมูลไม่พร้อม / ไม่พบใน Snapshot” และหยุดก่อนวิเคราะห์ต่อ
 
 ### ตัวอย่างรูปแบบคำตอบ:
-> LAST_CANDLE: 07/10/2026 23:00
-> UPDATED: 07/10/2026 23:07
-> Source: exchange
->
-> สรุป: ATOM ยังไม่ผ่าน MPTM เนื่องจาก Trend(W)=DOWN, EMA9 < EMA21, MACD_HIST_DELTA < 0, ENTRY_TRIGGER(1H)=WAIT
+```
+AKA         : ATOM 🚀
+LAST_CANDLE : 07/10/2026 23:00
+UPDATED     : 07/10/2026 23:07
+Source      : exchange
+```
+
+สรุป: ATOM ยังไม่ผ่าน MPTM เนื่องจาก Trend(W)=DOWN, EMA9 < EMA21, MACD_HIST_DELTA < 0, ENTRY_TRIGGER(1H)=WAIT
 
 ### บทบาทของรูปแบบนี้:
 * ทำให้ทุกคำตอบมี traceability และความชัดเจน
@@ -383,7 +389,7 @@ curl -L "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=xlsx
 
 ### Version Note
 * เอกสารนี้เป็นเวอร์ชันนำเสนอและสิ่งที่ถูกบันทึกไว้ที่นี่ใช้เป็น Standard Response Format สำหรับการวิเคราะห์เหรียญต่อเนื่อง
-* Changelog สำหรับรูปแบบคำตอบล่าสุด: เพิ่มบังคับให้ทุกคำตอบใส่ `LAST_CANDLE`, `UPDATED`, `Source`
+* Changelog สำหรับรูปแบบคำตอบล่าสุด: เพิ่มบังคับให้ทุกคำตอบใส่ `AKA`, `LAST_CANDLE`, `UPDATED`, `Source`
 
 **09/10/2026 - เพิ่มคู่มือการทำงานและตั้งค่า .env**
 - เพิ่ม Part 1.0: การตั้งค่าเริ่มต้น

@@ -121,12 +121,18 @@ START
 5. จัดกลุ่มเหรียญตามสถานะ
 6. ตรวจสอบ Liquidity จาก Bitkub API
 7. สร้างไฟล์ Excel 3 ชีทที่ `downloads/All-Bitkub-Batch-Log-vX_output.xlsx`
-8. แสดงผลสรุปใน Terminal พร้อม LAST_CANDLE, UPDATED, Source ของเหรียญที่กำหนด
+8. แสดงผลสรุปใน Terminal พร้อม LAST_CANDLE, UPDATED, Source ของเหรียญที่กำหนด ในรูปแบบ:
+   ```
+   AKA         : <ชื่อเหรียญ> 🚀
+   LAST_CANDLE : <timestamp ของ candle ล่าสุด>
+   UPDATED     : <timestamp ที่ข้อมูลอัปเดตล่าสุด>
+   Source      : <แหล่งข้อมูลที่ใช้ เช่น exchange, broker, export>
+   ```
 
 **🔧 การกำหนดเหรียญที่แสดงในหัวข้อ:**
 - แก้บรรทัด `TARGET_COIN = 'BTC'` ใน `update.sh` (บรรทัดที่ 56)
 - เปลี่ยนเป็นเหรียญที่ต้องการ (เช่น `'AAVE'`, `'ATOM'`, `'QNT'`)
-- ระบบจะแสดง LAST_CANDLE, UPDATED, Source ของเหรียญที่กำหนดเท่านั้น
+- ระบบจะแสดง AKA, LAST_CANDLE, UPDATED, Source ของเหรียญที่กำหนดเท่านั้น
 
 ### ตรวจยอดเงิน
 ตรวจสอบยอดเงินบาทคงเหลือในพอร์ต:
@@ -247,7 +253,7 @@ pip3 install openpyxl requests
 ### ข้อผิดพลาด: Permission denied สำหรับ script
 **วิธีแก้**: ตั้งค่า execute permission:
 ```bash
-chmod +x update.sh trade.sh
+chmod +x update.sh trade.sh portfolio.sh
 ```
 
 ### ข้อผิดพลาด: Sheet ID ไม่ถูกต้อง

@@ -24,7 +24,7 @@ MPTM/
 ├── .env                    ← เก็บ REF_SHEET_URL, BITKUB_API_KEY, BITKUB_API_SECRET
 ├── update.sh               ← โหลด .env → ดึง Sheet ID → ดาวน์โหลดข้อมูล
 ├── trade.sh                ← โหลด .env → ใช้ API Key ส่งคำสั่งซื้อขาย
-├── portfolio.sh            ← script แสดง Portfolio + P/L
+├── portfolio.sh            ← script แสดง Portfolio + P/L (คำนวณต้นทุนทางบัญชีรวมค่าธรรมเนียม)
 └── TimeFrame-OS-guidelines-and-model-vX.md  ← เอกสารแนวทางนี้
 ```
 
@@ -62,7 +62,7 @@ MPTM/
 ┌─────────────────────────────────────────────────────────┐
 │ 5. คำสั่งเพิ่มเติม                                    │
 │    MONEY → ตรวจยอดเงิน                               │
-│    PORTFOLIO → แสดง Portfolio + P/L                    │
+│    PORTFOLIO → แสดง Portfolio + P/L (ต้นทุนทางบัญชีรวมค่าธรรมเนียม)                    │
 │    CANDIDATE → แสดง PRE-ENTRY-Like Pattern CANDIDATE   │
 │    REVIEW → อ่าน guideline อีกครั้ง                  │
 │    BUY/SELL → ส่งคำสั่งซื้อขาย                       │
@@ -76,7 +76,7 @@ MPTM/
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
-| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -452,7 +452,7 @@ BITKUB_API_SECRET=your_api_secret_here
 | `./trade.sh "SELL/BTC/L=M/100%"` | ขาย BTC ราคาตลาด 100% ของที่มีในพอร์ต |
 | `./trade.sh "SELL/BTC/L=2000000/100%"` | ขาย BTC ราคา Limit 2,000,000 ขาย 100% ของที่มี |
 | `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ (Available / Reserved / Total) |
-| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
+| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
 
 ### Logic สำคัญ
 

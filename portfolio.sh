@@ -107,18 +107,39 @@ tickers = {t['symbol']: t for t in tickers_list if isinstance(t, dict)}
 data    = balances_raw.get('data', [])
 
 def avg_buy_price(orders, total_held):
-    """คำนวณราคาซื้อเฉลี่ย (FIFO-like weighted avg จาก buy orders)"""
-    buys  = [(float(o['rate']), float(o['amount']) / float(o['rate'])) for o in orders if o.get('side') == 'buy' and float(o.get('rate', 0)) > 0]
-    sells = [float(o['amount']) for o in orders if o.get('side') == 'sell']
+    """คำนวณราคาซื้อเฉลี่ยทางบัญชี (รวมค่าธรรมเนียม)"""
+    buys  = []
+    sells = []
+    for o in orders:
+        if o.get('side') == 'buy' and float(o.get('rate', 0)) > 0:
+            rate = float(o['rate'])
+            amount = float(o['amount'])
+            qty = amount / rate
+            fee = float(o.get('fee', 0))
+            buys.append((rate, qty, fee))
+        elif o.get('side') == 'sell':
+            amount = float(o['amount'])
+            fee = float(o.get('fee', 0))
+            sells.append((amount, fee))
+
     if not buys:
+        # Debug: log why no buys found
+        # print(f"DEBUG: No buy orders found. Total orders: {len(orders)}")
         return None
-    total_qty   = sum(q for _, q in buys)
-    total_cost  = sum(r * q for r, q in buys)
-    total_sold  = sum(sells)
+
+    total_qty   = sum(q for _, q, _ in buys)
+    total_cost  = sum(r * q + f for r, q, f in buys)  # รวมค่าธรรมเนียมซื้อในต้นทุน
+    total_sold  = sum(a for a, _ in sells)
+    total_sell_fee = sum(f for _, f in sells)  # ค่าธรรมเนียมขาย
+
     # ถ้าขายไปบางส่วน ใช้ weighted avg ทั้งหมด
     if total_qty <= 0:
         return None
-    return total_cost / total_qty
+
+    avg_price = total_cost / total_qty
+
+    # ส่งคืก tuple: (ราคาซื้อเฉลี่ย, ค่าธรรมเนียมขายรวม)
+    return (avg_price, total_sell_fee)
 
 rows = []
 thb_total = 0.0
@@ -136,28 +157,34 @@ for item in data:
     value  = total * last if last > 0 else 0
 
     orders   = histories.get(cur, [])
-    avg_cost = avg_buy_price(orders, total)
+    avg_result = avg_buy_price(orders, total)
 
-    if avg_cost and avg_cost > 0 and last > 0:
-        cost_basis = avg_cost * total
-        pnl        = value - cost_basis
+    # Debug: Check orders for coins without avg price
+    if not avg_result and total > 0:
+        print(f"DEBUG {cur}: Orders={len(orders)}, Total={total}", file=sys.stderr)
+
+    if avg_result and avg_result[0] and avg_result[0] > 0 and last > 0:
+        avg_price = avg_result[0]
+        total_sell_fee = avg_result[1]
+        cost_basis = avg_price * total
+        pnl        = value - cost_basis - total_sell_fee  # ลบค่าธรรมเนียมขายด้วย
         pnl_pct    = (pnl / cost_basis) * 100
     else:
-        avg_cost = None
+        avg_price = None
         pnl      = None
         pnl_pct  = None
 
-    rows.append((cur, total, avg_cost, last, value, pnl, pnl_pct))
+    rows.append((cur, total, avg_price, last, value, pnl, pnl_pct))
 
 rows.sort(key=lambda x: x[4], reverse=True)
 total_value = sum(r[4] for r in rows) + thb_total
 total_pnl   = sum(r[5] for r in rows if r[5] is not None)
 
 print(f'## 💼 Portfolio ({len(rows)} เหรียญ)\n')
-print(f'| Currency | Total | ราคาซื้อเฉลี่ย | ราคาล่าสุด | มูลค่า (THB) | กำไร/ขาดทุน | %P/L |')
+print(f'| Currency | Total | ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) | ราคาล่าสุด | มูลค่า (THB) | กำไร/ขาดทุน (หักค่าธรรมเนียม) | %P/L |')
 print(f'|:---|---:|---:|---:|---:|---:|---:|')
-for cur, total, avg_cost, last, val, pnl, pnl_pct in rows:
-    avg_str  = f'{avg_cost:,.4f}'  if avg_cost else 'N/A'
+for cur, total, avg_price, last, val, pnl, pnl_pct in rows:
+    avg_str  = f'{avg_price:,.4f}'  if avg_price else 'N/A'
     last_str = f'{last:,.4f}'      if last > 0  else 'N/A'
     val_str  = f'{val:,.2f}'       if val  > 0  else 'N/A'
     if pnl is not None:

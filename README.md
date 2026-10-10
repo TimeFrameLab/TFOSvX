@@ -100,7 +100,7 @@ START
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
-| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -182,7 +182,7 @@ TFvX/
 ├── .gitignore                              ← Git ignore rules
 ├── update.sh                               ← Main update script
 ├── trade.sh                                ← Trading command script
-├── portfolio.sh                            ← Portfolio viewer script
+├── portfolio.sh                            ← Portfolio viewer script (คำนวณต้นทุนทางบัญชีรวมค่าธรรมเนียม)
 ├── README.md                               ← เอกสารนี้
 ├── TimeFrame-OS-guidelines-and-model-vX.md ← เอกสารแนวทาง MPTM แบบละเอียด
 ├── downloads/                              ← โฟลเดอร์สำหรับไฟล์ดาวน์โหลด

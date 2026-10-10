@@ -60,7 +60,8 @@ TimeFrame OS (vX) เป็นระบบอัตโนมัติสำห�
 
 ### 2. โคลนโครงการ
 ```bash
-cd TFvX
+git clone https://github.com/TimeFrameLab/TFOSvX.git
+cd TFOSvX
 ```
 
 ### 3. ตั้งค่า Environment Variables

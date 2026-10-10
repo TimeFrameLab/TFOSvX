@@ -100,7 +100,7 @@ START
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
-| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L + Remark (Broker Coin* / No OH*) |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -154,12 +154,12 @@ START
 ```
 *ซื้อ BTC ในราคา 2,000,000 THB มูลค่า 1,000 THB*
 
-**⚠️ การแจ้งเตือนและยืนยันกฎ MPTM:**
-- ระบบจะตรวจสอบสถานะเหรียญจาก Excel output ก่อนส่งคำสั่งซื้อ
-- ถ้าเหรียญไม่ใช่ **BUY CONFIRMED** → ระบบจะแจ้งเตือนว่าการซื้อละเมิดกฎ MPTM
-- ระบบจะแสดงคำอธิบายกฎ MPTM และขอการยืนยัน (y/n)
+**⚠️ การแจ้งเตือนและยืนยันก่อนส่งคำสั่งซื้อ:**
+- ระบบตรวจสอบ **source** ของเหรียญจาก `/api/v3/market/symbols` ก่อนทุกครั้ง
+- แสดง `ℹ️ Broker Coin` หรือ `ℹ️ Exchange Coin` พร้อมขอยืนยัน (y/n) ถ้าเป็น Broker
+- ตรวจสอบสถานะ MPTM จาก Excel output — ถ้าไม่ใช่ **BUY CONFIRMED** → แจ้งเตือนและขอยืนยัน
+- ถ้าไม่พบเหรียญใน Excel (NOT_FOUND) หรืออ่านไม่ได้ (ERROR) → แจ้งเตือนและขอยืนยัน
 - ถ้าผู้ใช้ไม่ยืนยัน → ยกเลิกคำสั่ง
-- ถ้าผู้ใช้ยืนยัน → ส่งคำสั่งซื้อ (แต่มีการแจ้งเตือนไว้แล้ว)
 
 ### ส่งคำสั่งขาย (SELL)
 **Market Order**:
@@ -182,7 +182,7 @@ TFvX/
 ├── .gitignore                              ← Git ignore rules
 ├── update.sh                               ← Main update script
 ├── trade.sh                                ← Trading command script
-├── portfolio.sh                            ← Portfolio viewer script (คำนวณต้นทุนทางบัญชีรวมค่าธรรมเนียม)
+├── portfolio.sh                            ← Portfolio viewer script (ราคาซื้อเฉลี่ย + P/L + Remark)
 ├── README.md                               ← เอกสารนี้
 ├── TimeFrame-OS-guidelines-and-model-vX.md ← เอกสารแนวทาง MPTM แบบละเอียด
 ├── downloads/                              ← โฟลเดอร์สำหรับไฟล์ดาวน์โหลด

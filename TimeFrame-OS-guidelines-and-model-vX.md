@@ -24,7 +24,7 @@ MPTM/
 ├── .env                    ← เก็บ REF_SHEET_URL, BITKUB_API_KEY, BITKUB_API_SECRET
 ├── update.sh               ← โหลด .env → ดึง Sheet ID → ดาวน์โหลดข้อมูล
 ├── trade.sh                ← โหลด .env → ใช้ API Key ส่งคำสั่งซื้อขาย
-├── portfolio.sh            ← script แสดง Portfolio + P/L (คำนวณต้นทุนทางบัญชีรวมค่าธรรมเนียม)
+├── portfolio.sh            ← script แสดง Portfolio + ราคาซื้อเฉลี่ย + P/L + Remark (Broker Coin* / No OH*)
 └── TimeFrame-OS-guidelines-and-model-vX.md  ← เอกสารแนวทางนี้
 ```
 
@@ -62,7 +62,7 @@ MPTM/
 ┌─────────────────────────────────────────────────────────┐
 │ 5. คำสั่งเพิ่มเติม                                    │
 │    MONEY → ตรวจยอดเงิน                               │
-│    PORTFOLIO → แสดง Portfolio + P/L (ต้นทุนทางบัญชีรวมค่าธรรมเนียม)                    │
+│    PORTFOLIO → แสดง Portfolio + ราคาซื้อเฉลี่ย + P/L + Remark                         │
 │    CANDIDATE → แสดง PRE-ENTRY-Like Pattern CANDIDATE   │
 │    REVIEW → อ่าน guideline อีกครั้ง                  │
 │    BUY/SELL → ส่งคำสั่งซื้อขาย                       │
@@ -76,7 +76,7 @@ MPTM/
 | `START` | พิมพ์ในแชท | เริ่มต้นการทำงาน → REVIEW guideline → รอคำสั่งถัดไป |
 | `UPDATE` | รัน `./update.sh` | ดาวน์โหลดข้อมูลล่าสุด + ประมวลผล MPTM + ตรวจ Liquidity |
 | `MONEY` | รัน `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ |
-| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
+| `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L + Remark (Broker Coin* / No OH*) |
 | `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
@@ -452,7 +452,12 @@ BITKUB_API_SECRET=your_api_secret_here
 | `./trade.sh "SELL/BTC/L=M/100%"` | ขาย BTC ราคาตลาด 100% ของที่มีในพอร์ต |
 | `./trade.sh "SELL/BTC/L=2000000/100%"` | ขาย BTC ราคา Limit 2,000,000 ขาย 100% ของที่มี |
 | `./trade.sh "MONEY"` | ตรวจยอดเงินบาทคงเหลือ (Available / Reserved / Total) |
-| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L |
+| `./portfolio.sh` | แสดง Portfolio ทุกเหรียญ + ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) + กำไร/ขาดทุน (หักค่าธรรมเนียม) + %P/L + Remark |
+
+**Remark ในคอลัมน์ Portfolio:**
+- **Broker Coin\*** — Broker coin ไม่มี Order History ใน Bitkub API (error 61)
+- **No OH\*** — No Order History found; may be from Airdrop/Reward or external transfer
+- *(ตรวจสอบแล้วทั้ง API v3 และ v4: `my-order-history`, `crypto/deposits`, `crypto/compensations`)*
 
 ### Logic สำคัญ
 
@@ -462,20 +467,33 @@ BITKUB_API_SECRET=your_api_secret_here
 * **Limit Sell** — ใช้สำหรับกำหนดเป้าหมายในราคาที่ต้องการขาย (Take Profit)
 * ใช้ได้กับทุกเหรียญที่ Bitkub รองรับ เพียงเปลี่ยน `BTC` เป็นชื่อเหรียญที่ต้องการ
 
-### ⚠️ การแจ้งเตือนและยืนยันกฎ MPTM (MPTM Warning & Confirmation)
+### ⚠️ การแจ้งเตือนและยืนยันก่อนส่งคำสั่งซื้อ (BUY Warning & Confirmation)
 
-ระบบ trade.sh มีการแจ้งเตือนและขอการยืนยันก่อนส่งคำสั่งซื้อเพื่อป้องกันการซื้อที่ละเมิดกฎ MPTM:
+ระบบ trade.sh ตรวจสอบ 2 ระดับก่อนส่งคำสั่งซื้อทุกครั้ง:
 
 **ขั้นตอนการทำงาน:**
-1. ตรวจสอบสถานะเหรียญจาก Excel output (`downloads/All-Bitkub-Batch-Log-vX_output.xlsx`)
-2. ถ้าเหรียญอยู่ในสถานะ **BUY CONFIRMED** → ส่งคำสั่งซื้อทันที (ไม่มีการแจ้งเตือน)
-3. ถ้าเหรียญอยู่ในสถานะอื่น (EARLY/WATCH, PULLBACK ZONE, OVEREXTENDED, WAIT/RETEST) → แจ้งเตือน
-4. แสดงคำอธิบายกฎ MPTM และขอการยืนยัน (y/n)
-5. ถ้าผู้ใช้ไม่ยืนยัน → ยกเลิกคำสั่ง
-6. ถ้าผู้ใช้ยืนยัน → ส่งคำสั่งซื้อ (แต่มีการแจ้งเตือนไว้แล้ว)
+1. ดึง source ของเหรียญจาก `GET /api/v3/market/symbols` (หมายเหตุ: v4 ไม่มี endpoint นี้)
+2. แสดง `ℹ️ Broker Coin` หรือ `ℹ️ Exchange Coin` ให้ผู้ใช้ทราบ
+3. ถ้าเป็น **Broker Coin** → แจ้งเตือนข้อจำกัด (ไม่มี Order History) + ขอยืนยัน (y/n)
+4. ตรวจสอบสถานะ MPTM จาก Excel output (`downloads/All-Bitkub-Batch-Log-vX_output.xlsx`)
+5. ถ้าเหรียญอยู่ในสถานะ **BUY CONFIRMED** → ส่งคำสั่งซื้อทันที (ไม่มีการแจ้งเตือน MPTM)
+6. ถ้าเหรียญอยู่ในสถานะอื่น (EARLY/WATCH, PULLBACK ZONE, OVEREXTENDED, WAIT/RETEST) → แจ้งเตือน + ขอยืนยัน
+7. ถ้า **ไม่พบเหรียญใน Excel** (NOT_FOUND) → แจ้งเตือน + ขอยืนยัน
+8. ถ้า **อ่าน Excel ไม่ได้** (ERROR) → แจ้งเตือนให้รัน UPDATE ก่อน + ขอยืนยัน
+9. ถ้าผู้ใช้ไม่ยืนยัน → ยกเลิกคำสั่ง
 
-**ตัวอย่างการแจ้งเตือน:**
+**ตัวอย่างการแจ้งเตือน (Broker Coin):**
 ```
+ℹ️  AVA เป็น Broker Coin (source: broker)
+⚠️  Broker Coin อาจมีข้อจำกัดบางอย่าง เช่น ไม่มี Order History
+
+คุณต้องการซื้อต่อไหม? (y/n)
+```
+
+**ตัวอย่างการแจ้งเตือน (Exchange Coin + EARLY/WATCH):**
+```
+ℹ️  ATOM เป็น Exchange Coin (source: exchange)
+
 ⚠️ คำเตือน: ATOM อยู่ในสถานะ EARLY_WATCH (ไม่ใช่ BUY CONFIRMED)
 การซื้อละเมิดกฎ MPTM
 
@@ -485,12 +503,20 @@ BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยั
 คุณต้องการซื้อต่อไหม? (y/n)
 ```
 
-**ประโยชน์:**
-- ป้องกันการซื้อโดยไม่รู้ตัวว่าละเมิดกฎ MPTM
-- ช่วยให้ผู้ใช้ตัดสินใจใหม่ก่อนส่งคำสั่ง
-- ลดความเสี่ยงการเข้าซื้อในจังหวะผิด
-- ป้องกันการซื้อเหรียญที่อยู่ในสถานะ OVEREXTENDED (ห้ามไล่ราคา)
+**ตัวอย่างการแจ้งเตือน (NOT_FOUND):**
+```
+⚠️ คำเตือน: ไม่พบ COIN ใน Excel output (ยังไม่ได้รัน UPDATE หรือเหรียญไม่อยู่ใน Sheet)
+ไม่สามารถตรวจสอบสถานะ MPTM ได้
 
+คุณต้องการซื้อต่อไหม? (y/n)
+```
+
+**ประโยชน์:**
+- แจ้งให้ทราบว่าเหรียญเป็น Broker หรือ Exchange ก่อนซื้อทุกครั้ง
+- ป้องกันการซื้อ Broker Coin โดยไม่รู้ข้อจำกัด
+- ป้องกันการซื้อโดยไม่รู้ตัวว่าละเมิดกฎ MPTM
+- ป้องกันการซื้อเหรียญที่อยู่ในสถานะ OVEREXTENDED (ห้ามไล่ราคา)
+- ป้องกันการซื้อเมื่อไม่มีข้อมูล MPTM (NOT_FOUND / ERROR)
 ### แหล่งข้อมูลอ้างอิง Bitkub API
 
 สำหรับการแก้ไขปัญหาและอ้างอิง API ของ Bitkub:

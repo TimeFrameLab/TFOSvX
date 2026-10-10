@@ -108,6 +108,31 @@ TIMESTAMP=$(curl -s "$BASE_URL/api/v3/servertime")
 # BUY
 # ============================================================
 if [[ "$SIDE" == "BUY" ]]; then
+  # ตรวจสอบ source (broker/exchange) จาก Bitkub symbols
+  COIN_SOURCE=$(curl -s "$BASE_URL/api/v3/market/symbols" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+syms = d.get('result', d.get('data', []))
+m = {s.get('symbol','').replace('_THB','').upper(): s.get('source','exchange') for s in syms}
+print(m.get('$COIN', 'exchange'))
+" 2>/dev/null || echo "exchange")
+
+  if [[ "$COIN_SOURCE" == "broker" ]]; then
+    echo "ℹ️  $COIN เป็น Broker Coin (source: broker)"
+    echo "⚠️  Broker Coin อาจมีข้อจำกัดบางอย่าง เช่น ไม่มี Order History"
+    echo ""
+    echo "คุณต้องการซื้อต่อไหม? (y/n)"
+    read -r CONFIRM_SRC
+    if [[ "$CONFIRM_SRC" != "y" && "$CONFIRM_SRC" != "Y" ]]; then
+      echo "❌ ยกเลิกคำสั่ง"
+      exit 1
+    fi
+    echo ""
+  else
+    echo "ℹ️  $COIN เป็น Exchange Coin (source: exchange)"
+    echo ""
+  fi
+
   # ตรวจสอบสถานะเหรียญจาก Excel output
   OUTPUT_FILE="$(dirname "$0")/downloads/All-Bitkub-Batch-Log-vX_output.xlsx"
   if [[ -f "$OUTPUT_FILE" ]]; then

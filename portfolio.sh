@@ -43,6 +43,9 @@ curl -s "$BASE_URL/api/v4/wallet/balances${QUERY}" \
 # ดึง ticker ทุกคู่
 curl -s "$BASE_URL/api/v3/market/ticker" > "$TMPDIR_PF/tickers.json"
 
+# ดึง symbols source (exchange/broker)
+curl -s "$BASE_URL/api/v3/market/symbols" > "$TMPDIR_PF/symbols.json"
+
 # หาเหรียญที่มีใน wallet (ไม่รวม THB)
 COINS=$(python3 -c "
 import json
@@ -54,10 +57,15 @@ print(' '.join(coins))
 
 # ดึง order history ทุกเหรียญ — เก็บเป็น JSON array
 echo "{}" > "$TMPDIR_PF/histories.json"
+echo "{}" > "$TMPDIR_PF/deposits.json"
+echo "{}" > "$TMPDIR_PF/withdraws.json"
+
 for COIN in $COINS; do
   SYM="${COIN}_thb"
   CURSOR=""
   ALL_ORDERS="[]"
+
+  # ดึง order history
   while true; do
     TS=$(curl -s "$BASE_URL/api/v3/servertime")
     if [[ -z "$CURSOR" ]]; then
@@ -81,14 +89,56 @@ print(json.dumps(existing))
     if [[ "$HAS_NEXT" != "True" ]]; then break; fi
     CURSOR=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('pagination',{}).get('cursor',''))")
   done
-  # บันทึก orders ของเหรียญนี้
+
+  # บันทึก orders + error ของเหรียญนี้
+  ERROR_CODE=$(echo "$RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('error',0))" 2>/dev/null || echo 0)
   python3 -c "
 import json
 with open('$TMPDIR_PF/histories.json') as f:
     h = json.load(f)
-h['${COIN}'.upper()] = json.loads('''$ALL_ORDERS''')
+h['${COIN}'.upper()] = {'orders': json.loads('''$ALL_ORDERS'''), 'error': int('$ERROR_CODE')}
 with open('$TMPDIR_PF/histories.json', 'w') as f:
     json.dump(h, f)
+"
+
+  # ดึง deposit history
+  TS=$(curl -s "$BASE_URL/api/v3/servertime")
+  QUERY="?symbol=${COIN}&limit=100"
+  SIGN=$(sign "${TS}GET/api/v4/crypto/deposits${QUERY}")
+  curl -s "$BASE_URL/api/v4/crypto/deposits${QUERY}" \
+    -H "X-BTK-APIKEY: $API_KEY" \
+    -H "X-BTK-TIMESTAMP: $TS" \
+    -H "X-BTK-SIGN: $SIGN" > "$TMPDIR_PF/deposits_${COIN}.json"
+
+  python3 -c "
+import json
+with open('$TMPDIR_PF/deposits.json') as f:
+    d = json.load(f)
+with open('$TMPDIR_PF/deposits_${COIN}.json') as f:
+    resp = json.load(f)
+d['${COIN}'.upper()] = resp.get('data', {}).get('items', [])
+with open('$TMPDIR_PF/deposits.json', 'w') as f:
+    json.dump(d, f)
+"
+
+  # ดึง withdraw history
+  TS=$(curl -s "$BASE_URL/api/v3/servertime")
+  QUERY="?symbol=${COIN}&limit=100"
+  SIGN=$(sign "${TS}GET/api/v4/crypto/withdraws${QUERY}")
+  curl -s "$BASE_URL/api/v4/crypto/withdraws${QUERY}" \
+    -H "X-BTK-APIKEY: $API_KEY" \
+    -H "X-BTK-TIMESTAMP: $TS" \
+    -H "X-BTK-SIGN: $SIGN" > "$TMPDIR_PF/withdraws_${COIN}.json"
+
+  python3 -c "
+import json
+with open('$TMPDIR_PF/withdraws.json') as f:
+    d = json.load(f)
+with open('$TMPDIR_PF/withdraws_${COIN}.json') as f:
+    resp = json.load(f)
+d['${COIN}'.upper()] = resp.get('data', {}).get('items', [])
+with open('$TMPDIR_PF/withdraws.json', 'w') as f:
+    json.dump(d, f)
 "
 done
 
@@ -102,8 +152,12 @@ with open(sys.argv[2]) as f:
     tickers_list = json.load(f)
 with open(sys.argv[3]) as f:
     histories = json.load(f)
+with open(sys.argv[4]) as f:
+    symbols_raw = json.load(f)
 
 tickers = {t['symbol']: t for t in tickers_list if isinstance(t, dict)}
+sources = {s.get('symbol','').replace('_THB','').upper(): s.get('source','exchange')
+           for s in symbols_raw.get('result', symbols_raw.get('data', []))}
 data    = balances_raw.get('data', [])
 
 def avg_buy_price(orders, total_held):
@@ -154,45 +208,59 @@ for item in data:
     last   = float(ticker.get('last', 0))
     value  = total * last if last > 0 else 0
 
-    orders   = histories.get(cur, [])
+    hist_data  = histories.get(cur, {})
+    orders     = hist_data.get('orders', []) if isinstance(hist_data, dict) else []
+    hist_error = hist_data.get('error', 0)   if isinstance(hist_data, dict) else 0
+    coin_src   = sources.get(cur, 'exchange')
     avg_result = avg_buy_price(orders, total)
 
     if avg_result and avg_result[0] and avg_result[0] > 0 and last > 0:
         avg_price = avg_result[0]
         total_sell_fee = avg_result[1]
         cost_basis = avg_price * total
-        pnl        = value - cost_basis - total_sell_fee  # ลบค่าธรรมเนียมขายด้วย
+        pnl        = value - cost_basis - total_sell_fee
         pnl_pct    = (pnl / cost_basis) * 100
+        remark     = ''
     else:
         avg_price = None
-        pnl      = None
-        pnl_pct  = None
+        pnl       = None
+        pnl_pct   = None
+        if coin_src == 'broker':
+            remark = 'Broker Coin*'
+        elif hist_error == 61:
+            remark = 'Broker Coin*'
+        elif not orders:
+            remark = 'No OH*'
+        else:
+            remark = 'No OH*'
 
-    rows.append((cur, total, avg_price, last, value, pnl, pnl_pct))
+    rows.append((cur, total, avg_price, last, value, pnl, pnl_pct, remark))
 
 rows.sort(key=lambda x: x[4], reverse=True)
 total_value = sum(r[4] for r in rows) + thb_total
 total_pnl   = sum(r[5] for r in rows if r[5] is not None)
 
 print(f'## 💼 Portfolio ({len(rows)} เหรียญ)\n')
-print(f'| Currency | Total | ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) | ราคาล่าสุด | มูลค่า (THB) | กำไร/ขาดทุน (หักค่าธรรมเนียม) | %P/L |')
-print(f'|:---|---:|---:|---:|---:|---:|---:|')
-for cur, total, avg_price, last, val, pnl, pnl_pct in rows:
+print(f'| Currency | Total | ราคาซื้อเฉลี่ย (รวมค่าธรรมเนียม) | ราคาล่าสุด | มูลค่า (THB) | กำไร/ขาดทุน (หักค่าธรรมเนียม) | %P/L | Remark |')
+print(f'|:---|---:|---:|---:|---:|---:|---:|:---|')
+for cur, total, avg_price, last, val, pnl, pnl_pct, remark in rows:
     avg_str  = f'{avg_price:,.4f}'  if avg_price else 'N/A'
     last_str = f'{last:,.4f}'      if last > 0  else 'N/A'
     val_str  = f'{val:,.2f}'       if val  > 0  else 'N/A'
     if pnl is not None:
-        pnl_str  = f'+{pnl:,.2f}' if pnl >= 0 else f'{pnl:,.2f}'
-        pct_str  = f'+{pnl_pct:.2f}%' if pnl_pct >= 0 else f'{pnl_pct:.2f}%'
+        pnl_str = f'+{pnl:,.2f}' if pnl >= 0 else f'{pnl:,.2f}'
+        pct_str = f'+{pnl_pct:.2f}%' if pnl_pct >= 0 else f'{pnl_pct:.2f}%'
     else:
         pnl_str = 'N/A'
         pct_str = 'N/A'
-    print(f'| **{cur}** | {total:,.4f} | {avg_str} | {last_str} | {val_str} | {pnl_str} | {pct_str} |')
+    print(f'| **{cur}** | {total:,.4f} | {avg_str} | {last_str} | {val_str} | {pnl_str} | {pct_str} | {remark} |')
 if thb_total > 0:
-    print(f'| **THB** | {thb_total:,.2f} | — | 1.0000 | {thb_total:,.2f} | — | — |')
+    print(f'| **THB** | {thb_total:,.2f} | — | 1.0000 | {thb_total:,.2f} | — | — | — |')
 
 pnl_sign = '+' if total_pnl >= 0 else ''
 print(f'\n**รวมมูลค่าพอร์ต: {total_value:,.2f} THB** | **กำไร/ขาดทุนรวม: {pnl_sign}{total_pnl:,.2f} THB**')
+print(f'\n> \* Broker Coin = Broker coin ไม่มี Order History ใน Bitkub API')
+print(f'> \* No OH = No Order History found; may be from Airdrop/Reward or external transfer.')
 PYEOF
 
-python3 "$TMPDIR_PF/portfolio.py" "$TMPDIR_PF/balances.json" "$TMPDIR_PF/tickers.json" "$TMPDIR_PF/histories.json"
+python3 "$TMPDIR_PF/portfolio.py" "$TMPDIR_PF/balances.json" "$TMPDIR_PF/tickers.json" "$TMPDIR_PF/histories.json" "$TMPDIR_PF/symbols.json"

@@ -79,7 +79,7 @@ BITKUB_API_KEY=your_api_key_here
 BITKUB_API_SECRET=your_api_secret_here
 ```
 
-**หมายเหตุ**: หากไม่ได้ตั้งค่า `REF_SHEET_URL` ระบบจะใช้ค่า default Sheet ID
+**หมายเหตุ**: หากไม่ได้ตั้งค่า `REF_SHEET_URL` ระบบจะแสดงข้อความให้ตั้งค่า `REF_SHEET_URL` จากนั้นหยุดทำงานด้วยรหัสข้อผิดพลาด โดยไม่ดาวน์โหลดชีตหรือประมวลผลรายงาน
 
 หากต้องการสร้าง Google Sheet และ Apps Script เพื่ออัปเดตข้อมูลเหรียญสำหรับใช้งานเอง ดู [คู่มือการตั้งค่า Google Sheets](./GOOGLE-SHEETS-SETUP.md) และ [ดาวน์โหลด Apps Script ต้นแบบ](./examples/All-Bitkub-BATCH-starter.gs)
 

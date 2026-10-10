@@ -16,7 +16,7 @@ REF_SHEET_URL=<Reference Sheet URL ของคุณ>
 - script `update.sh` จะโหลดค่า `REF_SHEET_URL` จาก `.env` อัตโนมัติ
 - ดึง Sheet ID จาก URL (extract จาก pattern `/d/[SHEET_ID]`)
 - ใช้ Sheet ID นี้ในการดาวน์โหลดข้อมูลจาก Reference Sheet (REF Sheet)
-- หากไม่ได้ตั้งค่า จะใช้ค่า default Sheet ID
+- หากไม่ได้ตั้งค่า `REF_SHEET_URL` จะแสดงข้อความให้ตั้งค่าและหยุดทำงานด้วยรหัสข้อผิดพลาด โดยไม่ดาวน์โหลดชีตหรือประมวลผลรายงาน
 
 **โครงสร้างไฟล์:**
 ```

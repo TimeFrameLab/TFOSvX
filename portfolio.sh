@@ -123,8 +123,6 @@ def avg_buy_price(orders, total_held):
             sells.append((amount, fee))
 
     if not buys:
-        # Debug: log why no buys found
-        # print(f"DEBUG: No buy orders found. Total orders: {len(orders)}")
         return None
 
     total_qty   = sum(q for _, q, _ in buys)
@@ -158,10 +156,6 @@ for item in data:
 
     orders   = histories.get(cur, [])
     avg_result = avg_buy_price(orders, total)
-
-    # Debug: Check orders for coins without avg price
-    if not avg_result and total > 0:
-        print(f"DEBUG {cur}: Orders={len(orders)}, Total={total}", file=sys.stderr)
 
     if avg_result and avg_result[0] and avg_result[0] > 0 and last > 0:
         avg_price = avg_result[0]

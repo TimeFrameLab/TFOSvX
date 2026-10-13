@@ -42,7 +42,7 @@ MPTM/
 ┌─────────────────────────────────────────────────────────┐
 │ 2. ประมวลผล MPTM                                      │
 │    → อ่านข้อมูลจาก Reference Sheet (REF Sheet)        │
-│    → คัดกรองตาม PRE-ENTRY-Like Pattern (6 เกณฑ์)   │
+│    → คัดกรองตาม PRE-ENTRY-Like Pattern (7 เกณฑ์)   │
 │    → จัดกลุ่ม: BUY CONFIRMED / EARLY/WATCH / PULLBACK │
 │    → สร้าง Excel output 3 ชีท                         │
 └─────────────────────────────────────────────────────────┘
@@ -58,7 +58,7 @@ MPTM/
 │ 4. แสดงผลและวิเคราะห์                               │
 │    → แสดง BUY CONFIRMED (ถ้ามี)                      │
 │    → แสดง EARLY/WATCH TOP 10                          │
-│    → แสดง PULLBACK ZONE (W/4H/1H=UP, RSI 1H < 50)      │
+│    → แสดง PULLBACK ZONE (W/D/4H/1H=UP, RSI 1H < 50)    │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -85,7 +85,7 @@ MPTM/
 | `CANCEL/COIN` | รัน `./cancel.sh "CANCEL/BTC"` | ตรวจ Open Orders และเสนอคำสั่งยกเลิกราย Order ID โดยไม่ส่งคำขอ |
 | `CANCEL/COIN/SELL/ID=<ORDER_ID>` หรือ `CANCEL/COIN/BUY/ID=<ORDER_ID>` | รัน `./cancel.sh "CANCEL/BTC/SELL/ID=<ORDER_ID>"` | ตรวจ ID/ฝั่งใน Open Orders ล่าสุดก่อนยกเลิก จากนั้นตรวจ Open Orders ซ้ำ |
 | `PORTFOLIO` | รัน `./portfolio.sh` | แสดง Portfolio + ราคาซื้อเฉลี่ย + กำไร/ขาดทุน + %P/L พร้อมราคาและปริมาณคำสั่งขาย Limit ที่ยังเปิดอยู่ |
-| `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (6 เกณฑ์) |
+| `CANDIDATE` | ค้นหาใน Excel | แสดงเหรียญที่ผ่าน PRE-ENTRY-Like Pattern (7 เกณฑ์) |
 | `REVIEW` | พิมพ์ในแชท | อ่าน guideline อีกครั้งและพร้อมรับคำสั่งใหม่ |
 | `BUY/COIN/L=AMT` | รัน `./trade.sh "BUY/..."` | ส่งคำสั่งซื้อเหรียญ |
 | `SELL/COIN/L=PCT%` | รัน `./trade.sh "SELL/..."` | ส่งคำสั่งขายเหรียญ |
@@ -108,14 +108,16 @@ MPTM/
 
 หลัง START ให้ใช้รูปแบบคำตอบและโครงสร้างผลลัพธ์ตาม guideline อย่างเคร่งครัดในทุกคำสั่งที่เกี่ยวข้อง หากข้อมูลที่จำเป็นไม่มีหรือดึงไม่ได้ ให้แจ้งตามกฎข้อมูลไม่พร้อมของคู่มือ ห้ามละรูปแบบหรือสร้างข้อมูลขึ้นเอง
 
+**ข้อมูลสำคัญ — การแสดงผลหลัง START:** หลัง `START @README.md` และ REVIEW README กับ guideline ครบแล้ว ให้ใช้ข้อกำหนดผลลัพธ์ในเอกสารนี้อย่างเคร่งครัดกับทุกคำสั่ง `UPDATE`, `UPDATE/<AKA>`, `MONEY`, `PORTFOLIO`, `CANDIDATE`, `TARGET`, `CANCEL`, `BUY` และ `SELL` โดยทำตามรูปแบบเฉพาะของคำสั่งนั้น รวมถึงหัวข้อ ลำดับข้อมูล บรรทัดบังคับ ชื่อและลำดับคอลัมน์ ตาราง ลิงก์ และข้อความเตือน ห้ามละ ย่อ หรือแทนรูปแบบที่กำหนดด้วยคำตอบทั่วไป หากไม่มีข้อมูลที่จำเป็นหรือระบบ/API ยืนยันผลไม่ได้ ให้รายงานตามกฎข้อมูลไม่พร้อมของหัวข้อนั้น ห้ามแต่งข้อมูลหรือกล่าวว่าการดำเนินการสำเร็จโดยไม่มีผลยืนยัน
+
 ### 1. ปรัชญาและหลักการวิเคราะห์คัดกรอง (Core Decision Framework)
 * **การคัดกรองตามลำดับขั้น**: ระบบไม่จัดอันดับว่าเหรียญไหนดีที่สุดตั้งแต่แรก แต่คัดกรองตามลำดับโครงสร้างไทม์เฟรม **W → D → 4H → 1H**
 * **กฎจุดเข้าซื้อ (Action Trigger Rule)**: แม้โครงสร้างภาพใหญ่ (W/D) จะทรงสวยเพียงใด ระบบจะไม่ส่งคำสั่งซื้อจนกว่าจะเกิดสัญญาณ **`ENTRY_TRIGGER(1H)` = 🟢 ENTRY / 🟢 TRIGGER** ยืนยันในไทม์เฟรม 1H เพื่อป้องกันการเข้าซื้อในจังหวะที่ราคายังพักฐานไม่เสร็จ
 
 ### 2. สภาพแวดล้อมและการจัดการข้อมูล Excel (`All-Bitkub-Batch-Log-vX.xlsx`)
 ทุกครั้งที่มีการร้องขอคำสั่งอัปเดต ระบบจะดึงข้อมูลสดใหม่จากแหล่งข้อมูล `🐋 All-Bitkub - All-Bitkub-BATCH` และสร้าง/อัปเดตไฟล์ Excel เวอร์ชันใหม่ โดยมีโครงสร้าง 3 ชีทดังนี้:
-* **ชีทที่ 1: `Latest Snapshot` (วางไว้หน้าแรกสุด)**: สรุปเฉพาะสัญญาณรอบล่าสุดเพียงอย่างเดียว พร้อมคอลัมน์คำแนะนำ จุดเข้าซื้อ และลิงก์กราฟ TradingView / Bitkub; ชื่อเหรียญคลิกเพื่อเปิดกราฟ TradingView ได้
-* **ชีทที่ 2: `Master Signal Log`**: บันทึกประวัติสะสมทั้งหมดแบบ Append-Only (รักษาประวัติรอบก่อนหน้าทั้งหมด + นำสัญญาณรอบล่าสุดมาบันทึกต่อท้าย); ชื่อเหรียญของรายการใหม่คลิกเพื่อเปิดกราฟ TradingView ได้
+* **ชีทที่ 1: `Latest Snapshot` (วางไว้หน้าแรกสุด)**: สรุปเฉพาะสัญญาณรอบล่าสุดเพียงอย่างเดียว พร้อม `TREND(W)`, `TREND(D)`, คอลัมน์คำแนะนำ จุดเข้าซื้อ และลิงก์กราฟ TradingView / Bitkub; ชื่อเหรียญคลิกเพื่อเปิดกราฟ TradingView ได้
+* **ชีทที่ 2: `Master Signal Log`**: บันทึกประวัติสะสมทั้งหมดแบบ Append-Only (รักษาประวัติรอบก่อนหน้าทั้งหมด + นำสัญญาณรอบล่าสุดมาบันทึกต่อท้าย) พร้อม `TREND(W)` และ `TREND(D)`; ประวัติที่ไม่มี TREND(D) จะระบุ `N/A (ไม่ได้บันทึกในรอบเดิม)` และไม่เติมค่าปัจจุบันย้อนหลัง; ชื่อเหรียญของรายการใหม่คลิกเพื่อเปิดกราฟ TradingView ได้
 * **ชีทที่ 3: `REF.`**: เก็บรักษาสภาพลิงก์อ้างอิง Reference Sheet (REF Sheet) ต้นทางตามโครงสร้างเดิม
 
 ชื่อเหรียญในทุกรายการสถานะของ Terminal คลิกเพื่อเปิดกราฟ TradingView ได้เมื่อใช้ Terminal ที่รองรับ OSC 8 hyperlinks เช่น VS Code Terminal รุ่นที่รองรับ โดยรวมถึงรายการ `OVEREXTENDED` และ `WAIT/RETEST`
@@ -169,16 +171,18 @@ MPTM/
 
 $$\text{MPTM Condition} = \begin{cases} 
 \text{TREND}(W) = \text{UP} \\
-EMA9 > EMA21 \\
+\text{TREND}(D) = \text{UP} \\
 RSI(W) > 50 \\
+\text{MACD\_HIST\_DELTA}(W) > 0 \\
 RSI(D) < 70 \\
-\text{MACD Histogram} > 0 \\
-\Delta \text{MACD Histogram} > 0 \\
-\text{Volume} > \text{Average Volume}
+EMA9(W) > EMA21(W) \\
+\text{SIGNAL\_VOLUME} \geq 1\ \text{TF = BUY}
 \end{cases}$$
 
+สำหรับการคัดกรอง **CANDIDATE** ให้ใช้เกณฑ์ทั้ง 7 ข้อข้างต้นตามรายการในหัวข้อการจัดสถานะ โดย `MACD_HIST(W)>0` เป็นตัวชี้วัดประกอบของ MPTM แต่ไม่ใช่เงื่อนไขกรอง CANDIDATE เพิ่มเติม
+
 ### ความหมายเชิงลึกของแต่ละเกณฑ์:
-* **$EMA9 > EMA21$**: ยืนยันว่าราคาในระยะสั้นมีความเร่งเหนือกราฟระยะกลาง
+* **$EMA9(W) > EMA21(W)$**: ยืนยันว่าแนวโน้มค่าเฉลี่ยระดับสัปดาห์เรียงตัวตามเกณฑ์ CANDIDATE
 * **$RSI(W) > 50$**: แสดงถึงสภาวะตลาดฝั่งแรงซื้อควบคุมภาพใหญ่ระดับสัปดาห์
 * **$RSI(D) < 70$**: เป็นการจำกัดความเสี่ยง เพื่อป้องกันการเข้าซื้อ ณ จุดยอดการไล่ราคา (Overbought)
 * **$\Delta \text{MACD Histogram} > 0$**: บ่งชี้ว่าค่า Histogram ของวันนี้สูงกว่าค่าวานนี้ ($\text{Hist}_{t} - \text{Hist}_{t-1} > 0$) ซึ่งหมายถึงการเร่งตัวของแรงซื้อที่กำลังเพิ่มกำลังอย่างรวดเร็ว
@@ -300,32 +304,33 @@ curl -L "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=xlsx
 * ไฟล์ output บันทึกที่: `../Projects/TFOSvX/downloads/All-Bitkub-Batch-Log-vX_output.xlsx`
 
 ### 2. ตรวจโครงสร้างข้อมูลและคอลัมน์สำคัญ
-* ค้นหาเฉพาะคอลัมน์ที่เกี่ยวข้อง เช่น `AKA`, `TIER`, `Source`, `PRICE`, `TREND(W)`, `RSI(W)`, `RSI(D)`, `MACD_HIST(W)`, `MACD_HIST_DELTA(W)`, `EMA9(W)`, `EMA21(W)`, `PRICE_STRUCTURE(W)`, `ENTRY_TRIGGER(1H)`, `ACTION(1H)`, `SIGNAL_VOLUME(W)`, `SIGNAL_VOLUME(D)`, `SIGNAL_VOLUME(4H)`, `SIGNAL_VOLUME(1H)`
+* ค้นหาเฉพาะคอลัมน์ที่เกี่ยวข้อง เช่น `AKA`, `TIER`, `Source`, `PRICE`, `TREND(W)`, `TREND(D)`, `RSI(W)`, `RSI(D)`, `MACD_HIST(W)`, `MACD_HIST_DELTA(W)`, `EMA9(W)`, `EMA21(W)`, `PRICE_STRUCTURE(W)`, `ENTRY_TRIGGER(1H)`, `ACTION(1H)`, `SIGNAL_VOLUME(W)`, `SIGNAL_VOLUME(D)`, `SIGNAL_VOLUME(4H)`, `SIGNAL_VOLUME(1H)`
 * ยืนยันว่าค่าของแต่ละคอลัมน์มีความถูกต้องก่อนประเมิน
 
 ### 3. ปรับใช้หลัก PRE-ENTRY-Like Pattern(CANDIDATE)
 * ตรวจว่าเหรียญนั้นผ่านเงื่อนไข MPTM หรือยัง เช่น:
   * `TREND(W) = UP`
+  * `TREND(D) = UP`
   * `EMA9 > EMA21`
   * `RSI(W) > 50`
   * `RSI(D) < 70`
-  * `MACD Hist > 0`
   * `MACD Hist Delta > 0`
 * ถ้าไม่ผ่าน ต้องจัดเป็น `WAIT` / `RETEST` / `EARLY CANDIDATE` มากกว่าการบอกว่า BUY ทันที
 
 ### 4. แยกสถานะตาม Level ของแรงขับเคลื่อน
-* **BUY CONFIRMED**: ผ่านทั้งหมด และเกิด `ENTRY_TRIGGER(1H)`
-* **EARLY / WATCH**: ผ่านเงื่อนไขครบ 6 ข้อ แต่ยังรอ 1H trigger:
+* **BUY CONFIRMED**: ผ่านเกณฑ์ CANDIDATE ทั้ง 7 ข้อ และเกิด `ENTRY_TRIGGER(1H)` เป็น ENTRY/TRIGGER
+* **EARLY / WATCH**: ผ่านเกณฑ์ CANDIDATE ครบ 7 ข้อ แต่ยังรอ 1H trigger:
   1. `TREND(W) = UP`
-  2. `RSI(W) > 50`
-  3. `MACD_HIST_DELTA(W) > 0`
-  4. `RSI(D) < 70`
-  5. `EMA9(W) > EMA21(W)`
-  6. `SIGNAL_VOLUME ≥ 1 TF = BUY`
-* **🟠 PULLBACK ZONE**: `TREND(W)=UP` + `TREND(4H)=UP` + `TREND(1H)=UP` แต่ `RSI(1H) < 50` — โครงสร้างภาพใหญ่ยังดี กำลังพักฐานชั่วคราวใน 1H **เรียงตาม Combined Score สูงสุดก่อน** แสดงผลแยก 3 บรรทัด:
+  2. `TREND(D) = UP`
+  3. `RSI(W) > 50`
+  4. `MACD_HIST_DELTA(W) > 0`
+  5. `RSI(D) < 70`
+  6. `EMA9(W) > EMA21(W)`
+  7. `SIGNAL_VOLUME ≥ 1 TF = BUY`
+* **🟠 PULLBACK ZONE**: `TREND(W)=UP` + `TREND(D)=UP` + `TREND(4H)=UP` + `TREND(1H)=UP` แต่ `RSI(1H) < 50` — โครงสร้างภาพใหญ่ยังดี กำลังพักฐานชั่วคราวใน 1H **เรียงตาม Combined Score สูงสุดก่อน** แสดงผลแยก 3 บรรทัด:
   * `VOL   W/D/4H/1H` — 🟢=BUY / ⚪=HOLD พร้อมคะแนน (x/4)
-  * `TREND W/D/4H/1H` — 🟢=UP / 🔴=DOWN พร้อมคะแนน (x/4)
-  * `CMB   W/D/4H/1H` — ✅=VOL🟢+TREND🟢 พร้อมกันใน TF เดียวกัน / ❌=ไม่ผ่าน พร้อมคะแนน (x/4)
+  * `TREND W/D/4H/1H` — 🟢=UP / 🔴=DOWN / ⚫=ข้อมูลไม่พร้อม พร้อมคะแนน (x/4)
+  * `CMB   W/D/4H/1H` — ✅=VOL🟢+TREND🟢 พร้อมกันใน TF เดียวกัน / ❌=ไม่ผ่าน / ⚫=TREND ไม่พร้อม พร้อมคะแนน (x/4)
 * **WAIT / RETEST**: ไม่นิ่งแต่ยังไม่ผ่าน threshold ครบ
 * **OVEREXTENDED**: RSI สูงเกิน, ราคาไกล EMA, Volume พุ่งปลายคลื่น
 
@@ -347,7 +352,7 @@ curl -L "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=xlsx
 ### 7. ตัวอย่างคำถามที่ใช้เรียกต่อไป
 
 #### ตัวอย่าง 1: คัดเหรียญใกล้ PRE-ENTRY-Like Pattern(CANDIDATE) มากที่สุด
-> ให้เช็กข้อมูลจาก `All-Bitkub-BATCH` แล้วคัดเหรียญที่มี `TREND(W)=UP`, `EMA9 > EMA21`, `RSI(W)>50`, `RSI(D)<70`, `MACD_HIST>0`, `MACD_HIST_DELTA>0` มากที่สุดและจัดอันดับจากใกล้สุดถึงไกลสุด
+> ให้เช็กข้อมูลจาก `All-Bitkub-BATCH` แล้วคัดเหรียญที่ผ่านเกณฑ์ CANDIDATE ทั้ง 7 ข้อ: `TREND(W)=UP`, `TREND(D)=UP`, `RSI(W)>50`, `MACD_HIST_DELTA(W)>0`, `RSI(D)<70`, `EMA9(W)>EMA21(W)`, `SIGNAL_VOLUME ≥ 1 TF = BUY`; จัดอันดับตาม `MACD_HIST_DELTA(W)` จากมากไปน้อย
 
 #### ตัวอย่าง 2: หาเหรียญที่พร้อม BUY จริง
 > ให้ค้นหาเหรียญที่มี `ENTRY_TRIGGER(1H)` เป็น BUY หรือ TRIGGER พร้อมทั้งผ่าน `TFOSvX` และมี `Liquidity ≥ MEDIUM` แล้วให้แสดงแค่ top 5
@@ -433,7 +438,7 @@ Source      : <แหล่งข้อมูลที่ใช้ เช่น 
 
 #### คำสั่ง CANDIDATE
 
-แสดงหัวข้อ `ผลการค้นหา CANDIDATE (PRE-ENTRY-Like Pattern) — n เหรียญ` และบรรทัดอธิบาย `ผ่านเกณฑ์ MPTM 6 ข้อ เรียงตาม MACD Delta (W) สูงสุด — รอ 1H Trigger ยืนยัน` จากนั้นแสดง Markdown table ไม่เกิน 20 เหรียญ เรียง `MACD_HIST_DELTA(W)` จากมากไปน้อย โดยใช้หัวคอลัมน์และลำดับต่อไปนี้:
+แสดงหัวข้อ `ผลการค้นหา CANDIDATE (PRE-ENTRY-Like Pattern) — n เหรียญ` และบรรทัดอธิบาย `ผ่านเกณฑ์ CANDIDATE 7 ข้อ เรียงตาม MACD Delta (W) สูงสุด — รอ 1H Trigger ยืนยัน` จากนั้นแสดง Markdown table ไม่เกิน 20 เหรียญ เรียง `MACD_HIST_DELTA(W)` จากมากไปน้อย โดยใช้หัวคอลัมน์และลำดับต่อไปนี้:
 
 `# | เหรียญ | Tier | ราคา (THB) | MACD Δ(W) | Entry Zone (4H) | 1H Trigger | Liquidity`
 
@@ -457,6 +462,11 @@ Source      : exchange
 ---
 
 ### Version Note
+**14/10/2026 - เพิ่ม TREND(D) และปรับเกณฑ์ CANDIDATE**
+- เพิ่ม `TREND(D)` ในการประมวลผลและรายงาน Snapshot / Master Signal Log
+- กำหนด CANDIDATE ให้ใช้ 7 เงื่อนไขตามข้อกำหนดล่าสุด
+- ปรับ `trade.sh` ให้อ่านคอลัมน์คำแนะนำตำแหน่งใหม่ใน Latest Snapshot
+
 * เอกสารนี้เป็นเวอร์ชันนำเสนอและสิ่งที่ถูกบันทึกไว้ที่นี่ใช้เป็น Standard Response Format สำหรับการวิเคราะห์เหรียญต่อเนื่อง
 * Changelog สำหรับรูปแบบคำตอบล่าสุด: เพิ่มบังคับให้ทุกคำตอบใส่ `AKA`, `LAST_CANDLE`, `UPDATED`, `Source`
 
@@ -634,7 +644,7 @@ Target Price T1: <ราคา> THB
 การซื้อละเมิดกฎ MPTM
 
 ตามกฎ MPTM: ต้องมี 1H Trigger ยืนยันก่อนซื้อ
-BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยัน
+BUY CONFIRMED = ผ่าน CANDIDATE 7 เกณฑ์ + 1H Trigger ยืนยัน
 
 คุณต้องการซื้อต่อไหม? (y/n)
 ```

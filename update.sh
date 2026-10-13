@@ -96,6 +96,9 @@ wb_src = openpyxl.load_workbook(INPUT)
 ws_src = wb_src['All-Bitkub-BATCH']
 headers = [cell.value for cell in ws_src[1]]
 
+if 'TREND(D)' not in headers:
+    raise SystemExit('❌ ไม่พบคอลัมน์ TREND(D) ใน All-Bitkub-BATCH; หยุดประมวลผลเพื่อไม่ให้คะแนน Trend/CMB คลาดเคลื่อน')
+
 def col(name): return headers.index(name) if name in headers else None
 
 def get_val(row, idx):
@@ -130,38 +133,36 @@ for row in ws_src.iter_rows(min_row=2, values_only=True):
     rows_data.append(d)
 
 def classify(d):
-    trend_w  = str(d.get('TREND(W)','')).upper()
-    trend_4h = str(d.get('TREND(4H)','')).upper()
-    trend_1h = str(d.get('TREND(1H)','')).upper()
-    rsi_d    = d.get('RSI(D)')
-    rsi_w    = d.get('RSI(W)')
-    rsi_1h   = d.get('RSI(1H)')
-    macd_d   = d.get('MACD_HIST_DELTA(W)')
-    ema9     = d.get('EMA9(W)')
-    ema21    = d.get('EMA21(W)')
     trigger  = str(d.get('ENTRY_TRIGGER(1H)',''))
-    try: rsi_d  = float(rsi_d)
-    except: rsi_d = None
-    try: rsi_w  = float(rsi_w)
-    except: rsi_w = None
-    try: rsi_1h = float(rsi_1h)
-    except: rsi_1h = None
-    try: macd_d = float(macd_d)
-    except: macd_d = None
-    try: ema9  = float(ema9)
-    except: ema9 = None
-    try: ema21 = float(ema21)
-    except: ema21 = None
-    vol_buy = any('BUY' in str(d.get(k,'')).upper()
-                  for k in ['SIGNAL_VOLUME(W)','SIGNAL_VOLUME(D)','SIGNAL_VOLUME(4H)','SIGNAL_VOLUME(1H)'])
-    if rsi_d and rsi_d >= 70: return 'OVEREXTENDED'
-    if 'ENTRY' in trigger or 'TRIGGER' in trigger: return 'BUY_CONFIRMED'
-    if (trend_w == 'UP' and trend_4h == 'UP' and trend_1h == 'UP'
+
+    def number(key):
+        try: return float(d.get(key))
+        except (TypeError, ValueError): return None
+
+    rsi_d = number('RSI(D)')
+    rsi_1h = number('RSI(1H)')
+    trend_w = str(d.get('TREND(W)', '')).strip().upper()
+    trend_d = str(d.get('TREND(D)', '')).strip().upper()
+
+    candidate_pass = (
+        trend_w == 'UP'
+        and trend_d == 'UP'
+        and number('RSI(W)') is not None and number('RSI(W)') > 50
+        and number('MACD_HIST_DELTA(W)') is not None and number('MACD_HIST_DELTA(W)') > 0
+        and rsi_d is not None and rsi_d < 70
+        and number('EMA9(W)') is not None and number('EMA21(W)') is not None
+        and number('EMA9(W)') > number('EMA21(W)')
+        and any('BUY' in str(d.get(k, '')).upper()
+                for k in ['SIGNAL_VOLUME(W)', 'SIGNAL_VOLUME(D)', 'SIGNAL_VOLUME(4H)', 'SIGNAL_VOLUME(1H)'])
+    )
+
+    if rsi_d is not None and rsi_d >= 70: return 'OVEREXTENDED'
+    if candidate_pass and ('ENTRY' in trigger or 'TRIGGER' in trigger): return 'BUY_CONFIRMED'
+    if (trend_w == 'UP' and trend_d == 'UP'
+            and str(d.get('TREND(4H)', '')).strip().upper() == 'UP'
+            and str(d.get('TREND(1H)', '')).strip().upper() == 'UP'
             and rsi_1h is not None and rsi_1h < 50): return 'PULLBACK_ZONE'
-    if (trend_w == 'UP' and rsi_w and rsi_w > 50 and macd_d and macd_d > 0
-            and rsi_d and rsi_d < 70
-            and ema9 and ema21 and ema9 > ema21
-            and vol_buy): return 'EARLY_WATCH'
+    if candidate_pass: return 'EARLY_WATCH'
     return 'WAIT_RETEST'
 
 for d in rows_data:
@@ -228,7 +229,7 @@ def get_advice(d):
     if s == 'BUY_CONFIRMED':  return f'🟢 BUY CONFIRMED — ผ่าน MPTM ครบ + 1H Trigger ยืนยัน'
     if s == 'EARLY_WATCH':    return f'🟡 EARLY/WATCH — MACD Delta W = {macd_d}, รอ 1H Trigger'
     if s == 'OVEREXTENDED':   return f'🔴 OVEREXTENDED — RSI(D) ≥ 70 ห้ามไล่ราคา'
-    if s == 'PULLBACK_ZONE':  return f'🟠 PULLBACK ZONE — W/4H/1H=UP แต่ RSI(1H) < 50 กำลังพักฐาน'
+    if s == 'PULLBACK_ZONE':  return f'🟠 PULLBACK ZONE — W/D/4H/1H=UP แต่ RSI(1H) < 50 กำลังพักฐาน'
     return f'⚪ WAIT/RETEST — โครงสร้างยังไม่พร้อม'
 
 now_str  = datetime.now().strftime('%Y-%m-%d')
@@ -238,14 +239,14 @@ wb  = openpyxl.Workbook()
 ws1 = wb.active
 ws1.title = 'Latest Snapshot'
 
-ws1.merge_cells('A1:O1')
+ws1.merge_cells('A1:P1')
 c = ws1['A1']
 c.value = '🐋 Latest Active Signals Snapshot (สรุปสัญญาณรอบล่าสุด)'
 c.fill = TITLE_FILL; c.font = WHITE_FONT
 c.alignment = Alignment(horizontal='center')
 
 snap_headers = ['วันที่อัปเดต','เวลาอัปเดต','ชื่อเหรียญ','SOURCE','TIER','PRICE',
-                'LAST_CANDLE','UPDATED','TREND (W)','ENTRY_ZONE (4H)',
+                'LAST_CANDLE','UPDATED','TREND (W)','TREND (D)','ENTRY_ZONE (4H)',
                 'ENTRY_TRIGGER (1H)','ACTION (1H)','คำแนะนำ','TV URL','Bitkub URL']
 set_header(ws1, 2, snap_headers)
 
@@ -258,7 +259,7 @@ for d in snap_rows:
         now_str, now_time, aka,
         d.get('Source','exchange'), d.get('TIER',''), d.get('PRICE',''),
         d.get('LAST_CANDLE',''), d.get('UPDATED',''),
-        d.get('TREND(W)',''), d.get('ENTRY_ZONE(4H)',''),
+        d.get('TREND(W)',''), d.get('TREND(D)',''), d.get('ENTRY_ZONE(4H)',''),
         d.get('ENTRY_TRIGGER(1H)',''), d.get('ACTION(1H)',''),
         get_advice(d),
         f'=HYPERLINK("{url}","{url}")',
@@ -268,7 +269,7 @@ for d in snap_rows:
     set_coin_link(coin_cell, aka)
     r += 1
 
-for i, w in enumerate([12,10,10,10,6,10,18,18,10,16,18,12,55,50,40], 1):
+for i, w in enumerate([12,10,10,10,6,10,18,18,10,10,16,18,12,55,50,40], 1):
     ws1.column_dimensions[get_column_letter(i)].width = w
 ws1.freeze_panes = 'A3'
 
@@ -277,23 +278,30 @@ ws2 = wb.create_sheet('Master Signal Log')
 try:
     wb_old  = openpyxl.load_workbook(OUTPUT)
     ws_old  = wb_old['Master Signal Log']
+    old_headers = list(ws_old.iter_rows(min_row=2, max_row=2, values_only=True))[0]
     old_rows = list(ws_old.iter_rows(min_row=3, values_only=True))
-except: old_rows = []
+except: old_headers, old_rows = [], []
 
-ws2.merge_cells('A1:P1')
+ws2.merge_cells('A1:Q1')
 c2 = ws2['A1']
 c2.value = '🐋 All-Bitkub Master Signal Log (บันทึกสัญญาณรายรอบ)'
 c2.fill = TITLE_FILL; c2.font = WHITE_FONT
 c2.alignment = Alignment(horizontal='center')
 
 log_headers = ['วันที่ (Date)','เวลา (Time)','ชื่อเหรียญ (Symbol)','SOURCE','TIER','PRICE',
-               'LAST_CANDLE','UPDATED','TREND (W)','ENTRY_ZONE (4H)',
+               'LAST_CANDLE','UPDATED','TREND (W)','TREND (D)','ENTRY_ZONE (4H)',
                'ENTRY_TRIGGER (1H)','ACTION (1H)','สถานะสัญญาณ','หมายเหตุ / Action Plan','TV URL','Bitkub URL']
 set_header(ws2, 2, log_headers)
 
 r2 = 3
+old_header_index = {header: index for index, header in enumerate(old_headers) if header}
 for old_row in old_rows:
-    for c, val in enumerate(old_row, 1):
+    for c, header in enumerate(log_headers, 1):
+        if header == 'TREND (D)' and header not in old_header_index:
+            val = 'N/A (ไม่ได้บันทึกในรอบเดิม)'
+        else:
+            old_index = old_header_index.get(header)
+            val = old_row[old_index] if old_index is not None and old_index < len(old_row) else None
         ws2.cell(row=r2, column=c, value=val).border = BORDER
     if len(old_row) >= 3 and old_row[2]:
         set_coin_link(ws2.cell(row=r2, column=3), old_row[2])
@@ -309,7 +317,7 @@ for d in snap_rows:
         now_str, now_time, aka,
         d.get('Source','exchange'), d.get('TIER',''), d.get('PRICE',''),
         d.get('LAST_CANDLE',''), d.get('UPDATED',''),
-        d.get('TREND(W)',''), d.get('ENTRY_ZONE(4H)',''),
+        d.get('TREND(W)',''), d.get('TREND(D)',''), d.get('ENTRY_ZONE(4H)',''),
         d.get('ENTRY_TRIGGER(1H)',''), d.get('ACTION(1H)',''),
         status_label.get(d['STATUS'],''), get_advice(d),
         f'=HYPERLINK("{url}","{url}")',
@@ -319,7 +327,7 @@ for d in snap_rows:
     set_coin_link(coin_cell, aka)
     r2 += 1
 
-for i, w in enumerate([12,10,10,10,6,10,18,18,10,16,18,12,16,55,50,40], 1):
+for i, w in enumerate([12,10,10,10,6,10,18,18,10,10,16,18,12,16,55,50,40], 1):
     ws2.column_dimensions[get_column_letter(i)].width = w
 ws2.freeze_panes = 'A3'
 
@@ -374,13 +382,17 @@ def pullback_metrics(d):
         '🟢' if 'BUY' in str(d.get(f'SIGNAL_VOLUME({period})', '')).upper() else '⚪'
         for period in ['W', 'D', '4H', '1H']
     ]
+    trend_values = [str(d.get(f'TREND({period})', '')).strip().upper()
+                    for period in ['W', 'D', '4H', '1H']]
     trend = [
-        '🟢' if str(d.get(f'TREND({period})', '')).upper() == 'UP' else '🔴'
-        for period in ['W', 'D', '4H', '1H']
+        '🟢' if value == 'UP' else '🔴' if value == 'DOWN' else '⚫'
+        for value in trend_values
     ]
     combined = [
-        '✅' if volume_signal == '🟢' and trend_signal == '🟢' else '❌'
-        for volume_signal, trend_signal in zip(volume, trend)
+        '✅' if volume_signal == '🟢' and trend_value == 'UP'
+        else '⚫' if trend_value not in ('UP', 'DOWN')
+        else '❌'
+        for volume_signal, trend_value in zip(volume, trend_values)
     ]
     return (
         f"{''.join(volume)} ({volume.count('🟢')}/4)",

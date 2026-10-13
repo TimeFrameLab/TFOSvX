@@ -20,7 +20,7 @@
 //
 // ⚠️ Threshold ต่างกันตาม TF (RSI/EMA_GAP/RS) — ปรับได้ที่ TF_CONFIG
 // ⚠️ SIGNAL_VOLUME / RELATIVE_STRENGTH ไม่มีผลต่อ ACTION โดยตรง (คอลัมน์เสริม)
-// ⚠️ บล็อก D ไม่มี TREND(D) และ MACD_HIST_DELTA(D) ตามชีตจริงของผู้ใช้ (ต่างจาก W/4H/1H)
+// ⚠️ บล็อก D มี TREND(D) แต่ไม่มี MACD_HIST_DELTA(D) (ต่างจาก W/4H/1H)
 // ⚠️ Bitkub มีแต่คู่เทียบ THB → PRICE เป็นบาท / เหรียญไม่มีคู่ THB จะขึ้น "NO PAIR"
 // ⚠️ COST / QUANTITY = ผู้ใช้กรอกเอง สคริปต์ไม่เขียนทับ (เปลี่ยนแค่สีของ COST)
 //
@@ -143,11 +143,11 @@ const FIELD_LABELS = {
   entryZoneRaw: "ENTRY_ZONE", entryTriggerRaw: "ENTRY_TRIGGER",
 };
 
-// ชุดฟิลด์ต่อ TF — ตรงตามคอลัมน์จริงในชีต (D ไม่มี trend/histDelta ตามที่ผู้ใช้ระบุ)
+// ชุดฟิลด์ต่อ TF — TREND มีครบ W/D/4H/1H; D ไม่มี MACD_HIST_DELTA
 const TF_BLOCK_FIELDS = {
   "W":  ["trend", "rsi", "hist", "histPrev", "histDelta", "macd", "macdSig", "ema9", "ema21", "emaGap",
          "sigRsi", "sigMacd", "sigEma", "sigVolume", "structure", "relStrength", "actionTF"],
-  "D":  ["rsi", "hist", "histPrev", "macd", "macdSig", "ema9", "ema21", "emaGap",
+  "D":  ["trend", "rsi", "hist", "histPrev", "macd", "macdSig", "ema9", "ema21", "emaGap",
          "sigRsi", "sigMacd", "sigEma", "sigVolume", "structure", "relStrength", "actionTF"],
   "4H": ["trend", "rsi", "hist", "histPrev", "histDelta", "macd", "macdSig", "ema9", "ema21", "emaGap",
          "sigRsi", "sigMacd", "sigEma", "sigVolume", "structure", "relStrength", "entryZoneRaw", "actionTF"],

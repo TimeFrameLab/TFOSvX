@@ -543,7 +543,9 @@ try:
     for row in sheet.iter_rows(min_row=3, values_only=True):
         aka = row[2]
         if aka == '$COIN':
-            advice = row[12]
+            # Latest Snapshot: column N (zero-based index 13) is คำแนะนำ.
+            # TREND(D) was added at column J, shifting advice one column right.
+            advice = row[13]
             if advice and 'BUY CONFIRMED' in advice:
                 print('BUY_CONFIRMED')
             elif advice and 'EARLY/WATCH' in advice:
@@ -601,7 +603,7 @@ except:
       echo "การซื้อละเมิดกฎ MPTM"
       echo ""
       echo "ตามกฎ MPTM: ต้องมี 1H Trigger ยืนยันก่อนซื้อ"
-      echo "BUY CONFIRMED = ผ่าน MPTM 6 เกณฑ์ + 1H Trigger ยืนยัน"
+      echo "BUY CONFIRMED = ผ่าน CANDIDATE 7 เกณฑ์ + 1H Trigger ยืนยัน"
       echo ""
       echo "คุณต้องการซื้อต่อไหม? (y/n)"
       read -r CONFIRM
